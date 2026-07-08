@@ -59,35 +59,36 @@ SYSTEM_PROMPT = (
     "English spelling."
 )
 
-# ONS Beta API — open, keyless, JSON. Each entry is one national statistic.
-#   dataset / series ids are stable ONS identifiers.
-#   "freq" tells the parser which observation array to read.
-ONS_BASE = "https://api.ons.gov.uk/timeseries/{series}/dataset/{dataset}/data"
+# ONS CSV download — open, keyless, stable. The old api.ons.gov.uk JSON
+# endpoint was retired in 2025. The CSV generator at www.ons.gov.uk is the
+# recommended replacement and returns a clean two-column (date, value) file
+# for any time series identified by its website URI path.
+ONS_CSV = "https://www.ons.gov.uk/generator?format=csv&uri={uri}"
 
 STAT_SOURCES: dict[str, dict] = {
     "cpih_inflation": {
         "label": "CPIH annual inflation rate (%)",
-        "dataset": "mm23", "series": "l55o", "freq": "months",
+        "uri": "/economy/inflationandpriceindices/timeseries/l55o/mm23",
     },
     "unemployment": {
         "label": "UK unemployment rate, ages 16+ (%)",
-        "dataset": "lms", "series": "mgsx", "freq": "months",
+        "uri": "/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms",
     },
     "employment_rate": {
         "label": "UK employment rate, ages 16-64 (%)",
-        "dataset": "lms", "series": "lf24", "freq": "months",
+        "uri": "/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/timeseries/lf24/lms",
     },
     "economic_inactivity": {
         "label": "UK economic inactivity rate, ages 16-64 (%)",
-        "dataset": "lms", "series": "lf2s", "freq": "months",
+        "uri": "/employmentandlabourmarket/peoplenotinwork/economicinactivity/timeseries/lf2s/lms",
     },
     "gdp_growth": {
         "label": "UK GDP quarter-on-quarter growth (%)",
-        "dataset": "pn2", "series": "ihyq", "freq": "quarters",
+        "uri": "/economy/grossdomesticproductgdp/timeseries/ihyq/pn2",
     },
     "vacancies": {
         "label": "UK job vacancies, total (thousands)",
-        "dataset": "unem", "series": "ap2y", "freq": "months",
+        "uri": "/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/ap2y/unem",
     },
 }
 
@@ -129,13 +130,20 @@ log = logging.getLogger("i20")
 # Step 1 — Fetch live statistics from the ONS open API
 # --------------------------------------------------------------------------
 
-def fetch_ons_series(dataset: str, series: str, freq: str) -> dict | None:
+def fetch_ons_series(uri: str) -> dict | None:
     """
-    Return the latest observation for one ONS time series as
-    {"value": "6.7", "period": "May 2026"} — or None on failure.
-    Retries transient failures with linear backoff.
+    Download the ONS CSV for one time series and return the latest
+    monthly observation as {"value": "3.4", "period": "2026 APR"}.
+    Returns None on failure. Retries transient errors with backoff.
+
+    The CSV has metadata header rows (title, CDID, source, etc.)
+    followed by blank line(s), then the data rows.  Data rows with
+    a year-only date are annual aggregates; rows with "Q1"–"Q4" are
+    quarterly; rows with three-letter month abbreviations (JAN, FEB …)
+    are monthly.  We take the last non-empty monthly row so the
+    anchoring figure is always the freshest monthly observation.
     """
-    url = ONS_BASE.format(series=series, dataset=dataset)
+    url = ONS_CSV.format(uri=uri)
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             resp = requests.get(
@@ -144,19 +152,38 @@ def fetch_ons_series(dataset: str, series: str, freq: str) -> dict | None:
                 headers={"User-Agent": "i20.co.uk weekly-insights-bot"},
             )
             resp.raise_for_status()
-            payload = resp.json()
-            observations = payload.get(freq) or []
-            if not observations:
-                log.warning("ONS %s/%s returned no '%s' observations", dataset, series, freq)
-                return None
-            latest = observations[-1]
-            return {
-                "value": str(latest.get("value", "")).strip(),
-                "period": str(latest.get("date", "")).strip(),
-            }
+
+            # Parse CSV: skip metadata header, find data rows
+            import csv, io
+            reader = csv.reader(io.StringIO(resp.text))
+            latest_value = None
+            latest_period = None
+            for row in reader:
+                if len(row) < 2:
+                    continue
+                date_cell = row[0].strip()
+                val_cell = row[1].strip()
+                # Monthly rows look like "2026 APR" or "2026 JAN"
+                # Quarterly rows look like "2026 Q1"
+                # Annual rows are just "2026"
+                # We prefer monthly; fall back to quarterly, then annual
+                if not val_cell or not date_cell:
+                    continue
+                try:
+                    float(val_cell)  # confirm it's numeric
+                except ValueError:
+                    continue
+                latest_value = val_cell
+                latest_period = date_cell
+
+            if latest_value:
+                return {"value": latest_value, "period": latest_period}
+            log.warning("ONS CSV %s returned no usable data rows", uri)
+            return None
+
         except (requests.RequestException, ValueError) as exc:
-            log.warning("ONS fetch %s/%s attempt %d/%d failed: %s",
-                        dataset, series, attempt, MAX_RETRIES, exc)
+            log.warning("ONS CSV fetch %s attempt %d/%d failed: %s",
+                        uri, attempt, MAX_RETRIES, exc)
             if attempt < MAX_RETRIES:
                 time.sleep(RETRY_BACKOFF_SECONDS * attempt)
     return None
@@ -166,7 +193,7 @@ def fetch_all_stats() -> dict[str, dict]:
     """Fetch every configured statistic once and cache it in memory."""
     stats: dict[str, dict] = {}
     for key, cfg in STAT_SOURCES.items():
-        result = fetch_ons_series(cfg["dataset"], cfg["series"], cfg["freq"])
+        result = fetch_ons_series(cfg["uri"])
         if result and result["value"]:
             stats[key] = {**result, "label": cfg["label"]}
             log.info("Fetched %-22s = %s (%s)", key, result["value"], result["period"])
