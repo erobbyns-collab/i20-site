@@ -84,7 +84,7 @@ STAT_SOURCES = {
     },
     "vacancies": {
         "label": "UK job vacancies, total (thousands)",
-        "uri": "/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/ap2y/unem",
+        "uri": "/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/timeseries/ap2y/unem",
     },
 }
 
