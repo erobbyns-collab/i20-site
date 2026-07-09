@@ -1,675 +1,493 @@
 <!DOCTYPE html>
-<!-- =====================================================================
-     i20 / Powerful Weekly Insights Into What Is Affecting The UK Society
-     Single-file static site. Deployed via Cloudflare Pages.
-     Text inside elements with ids  card-XX-desc  and  insight-XX-content
-     is rewritten every Monday by update_data.py (GitHub Actions).
-     Those elements MUST remain single <p> tags with no nested block
-     elements, or the automated parser will refuse to touch them.
-     ===================================================================== -->
 <html lang="en-GB">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="i20 — powerful weekly insights into what is affecting UK society. Twenty data-driven briefings across the economy, technology, healthcare, education and housing, refreshed every Monday.">
-  <title>i20 &mdash; Powerful Weekly Insights Into What Is Affecting The UK Society</title>
-
-  <!-- Typography: Fraunces (display serif), Newsreader (long-form body),
-       Inter (interface / labels). -->
+  <meta name="description" content="i20 — the forces reshaping modern Britain, in twenty weekly data-driven briefings across the economy, technology, healthcare, education and housing.">
+  <title>i20 — The forces reshaping modern Britain</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    /* ================= Warm-minimalist dark theme tokens ================ */
-    :root{
-      --ink-bg:        #171310;   /* deep espresso, not pure black          */
-      --ink-panel:     #201a14;   /* card surface                           */
-      --ink-panel-hi:  #28211a;   /* card hover surface                     */
-      --ink-line:      #33291f;   /* hairline rules                         */
-      --paper:         #eae2d4;   /* primary warm-ivory text                */
-      --paper-dim:     #a4977f;   /* secondary text                         */
-      --ember:         #c28a4e;   /* single warm amber accent               */
-      --ember-soft:    rgba(194,138,78,.14);
-      --font-display:  "Fraunces", Georgia, serif;
-      --font-body:     "Newsreader", Georgia, serif;
-      --font-ui:       "Inter", -apple-system, "Segoe UI", sans-serif;
-      --ease:          cubic-bezier(.22,.9,.3,1);
+    :root {
+      --bg-page: #f0f1f3; --bg-card: #ffffff; --bg-card-hover: #f8f8fa;
+      --bg-modal: #ffffff; --text-primary: #1a1a2e; --text-secondary: #52526a;
+      --text-muted: #8a8a9e; --border-light: #e2e3e8; --border-rule: #d0d1d8;
+      --sector-economy: #1e3a5f; --sector-technology: #0d9488;
+      --sector-healthcare: #e8634a; --sector-education: #d97706;
+      --sector-housing: #2d8a56;
+      --shadow-card: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-card-hover: 0 8px 24px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.06);
+      --shadow-modal: 0 24px 64px rgba(0,0,0,.18);
+      --font-display: "Fraunces", Georgia, serif;
+      --font-body: "Newsreader", Georgia, serif;
+      --font-ui: "Inter", -apple-system, "Segoe UI", sans-serif;
+      --ease: cubic-bezier(.22,.9,.3,1);
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg-page);color:var(--text-primary);font-family:var(--font-ui);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+    ::selection{background:var(--sector-economy);color:#fff}
 
-    *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
-    html{ scroll-behavior:smooth; }
-    body{
-      background:var(--ink-bg);
-      color:var(--paper);
-      font-family:var(--font-ui);
-      font-size:16px;
-      line-height:1.6;
-      -webkit-font-smoothing:antialiased;
-    }
-    ::selection{ background:var(--ember); color:var(--ink-bg); }
+    .masthead{max-width:1240px;margin:0 auto;padding:3rem 1.5rem 2rem}
+    .masthead-top{display:flex;align-items:baseline;flex-wrap:wrap;gap:.5rem 1.5rem;padding-bottom:1.5rem;border-bottom:2px solid var(--text-primary)}
+    .brand{font-family:var(--font-display);font-weight:700;font-size:clamp(2.8rem,6vw,4.4rem);letter-spacing:-.03em;line-height:1;color:var(--text-primary)}
+    .strapline{font-family:var(--font-display);font-weight:300;font-size:clamp(1rem,2vw,1.3rem);color:var(--text-secondary);line-height:1.35;max-width:38ch}
+    .masthead-meta{display:flex;flex-wrap:wrap;gap:.5rem 2rem;padding-top:1rem;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted)}
+    .masthead-meta strong{color:var(--text-secondary);font-weight:600}
 
-    a{ color:var(--ember); text-decoration:none; }
-    a:hover{ text-decoration:underline; }
+    .sector-legend{display:flex;flex-wrap:wrap;gap:.5rem;padding-top:.75rem}
+    .sector-pill{display:inline-flex;align-items:center;gap:.35rem;font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-secondary)}
+    .sector-pill .dot{width:8px;height:8px;border-radius:50%}
+    .dot--economy{background:var(--sector-economy)}.dot--technology{background:var(--sector-technology)}
+    .dot--healthcare{background:var(--sector-healthcare)}.dot--education{background:var(--sector-education)}
+    .dot--housing{background:var(--sector-housing)}
 
-    /* ============================== Header ============================== */
-    .masthead{
-      max-width:1200px; margin:0 auto;
-      padding:3.5rem 1.5rem 2.5rem;
-      border-bottom:1px solid var(--ink-line);
-    }
-    .masthead-row{
-      display:flex; flex-wrap:wrap; align-items:baseline;
-      gap:.75rem 2rem;
-    }
-    .brand{
-      font-family:var(--font-display);
-      font-weight:600; font-size:clamp(2.6rem,6vw,4.2rem);
-      letter-spacing:-.02em; line-height:1;
-    }
-    .brand .slash{ color:var(--ember); font-weight:300; }
-    .strapline{
-      font-family:var(--font-display); font-weight:300; font-style:italic;
-      font-size:clamp(1.05rem,2.2vw,1.35rem);
-      color:var(--paper-dim); max-width:34ch; line-height:1.35;
-    }
-    .issue-line{
-      margin-top:1.75rem;
-      display:flex; flex-wrap:wrap; gap:.5rem 1.5rem;
-      font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
-      color:var(--paper-dim);
-    }
-    .issue-line strong{ color:var(--ember); font-weight:600; }
+    .dashboard{max-width:1240px;margin:0 auto;padding:0 1.5rem 4rem;columns:4;column-gap:1rem}
+    @media(max-width:1060px){.dashboard{columns:3}}
+    @media(max-width:740px){.dashboard{columns:2}}
+    @media(max-width:480px){.dashboard{columns:1}}
 
-    /* ============================ Dashboard ============================= */
-    .dashboard{
-      max-width:1200px; margin:0 auto;
-      padding:2.5rem 1.5rem 5rem;
-      display:grid; gap:1px;                 /* hairline gaps via bg colour */
-      background:var(--ink-line);
-      grid-template-columns:repeat(4,1fr);
-      border:1px solid var(--ink-line);
-    }
-    @media (max-width:1000px){ .dashboard{ grid-template-columns:repeat(3,1fr);} }
-    @media (max-width:720px) { .dashboard{ grid-template-columns:repeat(2,1fr);} }
-    @media (max-width:460px) { .dashboard{ grid-template-columns:1fr;} }
+    .card{break-inside:avoid;margin-bottom:1rem;background:var(--bg-card);border-radius:10px;box-shadow:var(--shadow-card);overflow:hidden;cursor:pointer;transition:box-shadow .3s var(--ease),transform .3s var(--ease);position:relative}
+    .card:hover,.card:focus-visible{box-shadow:var(--shadow-card-hover);transform:translateY(-3px)}
+    .card:focus-visible{outline:2px solid var(--sector-economy);outline-offset:2px}
+    .card-stripe{height:4px;width:100%}
+    [data-sector="economy"] .card-stripe{background:var(--sector-economy)}
+    [data-sector="technology"] .card-stripe{background:var(--sector-technology)}
+    [data-sector="healthcare"] .card-stripe{background:var(--sector-healthcare)}
+    [data-sector="education"] .card-stripe{background:var(--sector-education)}
+    [data-sector="housing"] .card-stripe{background:var(--sector-housing)}
+    .card-inner{padding:1.25rem 1.25rem 1.4rem}
+    .card-meta{display:flex;align-items:center;gap:.6rem;margin-bottom:.65rem}
+    .card-sector{font-size:.65rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+    [data-sector="economy"] .card-sector{color:var(--sector-economy)}
+    [data-sector="technology"] .card-sector{color:var(--sector-technology)}
+    [data-sector="healthcare"] .card-sector{color:var(--sector-healthcare)}
+    [data-sector="education"] .card-sector{color:var(--sector-education)}
+    [data-sector="housing"] .card-sector{color:var(--sector-housing)}
+    .card-title{font-family:var(--font-display);font-weight:700;font-size:1.1rem;line-height:1.25;letter-spacing:-.01em;color:var(--text-primary);margin-bottom:.5rem}
+    .card-desc{font-family:var(--font-body);font-size:.88rem;line-height:1.55;color:var(--text-secondary);display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+    .card-cta{display:block;margin-top:.75rem;font-size:.72rem;font-weight:600;letter-spacing:.06em;opacity:0;transform:translateX(-6px);transition:opacity .25s var(--ease),transform .25s var(--ease)}
+    [data-sector="economy"] .card-cta{color:var(--sector-economy)}
+    [data-sector="technology"] .card-cta{color:var(--sector-technology)}
+    [data-sector="healthcare"] .card-cta{color:var(--sector-healthcare)}
+    [data-sector="education"] .card-cta{color:var(--sector-education)}
+    [data-sector="housing"] .card-cta{color:var(--sector-housing)}
+    .card:hover .card-cta,.card:focus-visible .card-cta{opacity:1;transform:none}
 
-    .card{
-      background:var(--ink-panel);
-      padding:1.4rem 1.25rem 1.5rem;
-      display:flex; flex-direction:column; gap:.55rem;
-      cursor:pointer;
-      transition:background .25s var(--ease), transform .25s var(--ease);
-    }
-    .card:hover,.card:focus-visible{
-      background:var(--ink-panel-hi);
-      transform:translateY(-2px);
-    }
-    .card:focus-visible{ outline:2px solid var(--ember); outline-offset:-2px; }
-
-    .card-num{
-      font-family:var(--font-display); font-weight:300;
-      font-size:1.9rem; color:var(--ember); line-height:1;
-    }
-    .card-sector{
-      font-size:.64rem; font-weight:600;
-      letter-spacing:.16em; text-transform:uppercase;
-      color:var(--paper-dim);
-    }
-    .card-title{
-      font-family:var(--font-display); font-weight:600;
-      font-size:1.12rem; line-height:1.25; letter-spacing:-.01em;
-    }
-    .card-desc{
-      font-family:var(--font-body);
-      font-size:.9rem; line-height:1.5; color:var(--paper-dim);
-      display:-webkit-box; -webkit-line-clamp:4;
-      -webkit-box-orient:vertical; overflow:hidden;
-    }
-    .card-cta{
-      margin-top:auto; padding-top:.6rem;
-      font-size:.72rem; letter-spacing:.08em; color:var(--ember);
-      opacity:0; transform:translateX(-4px);
-      transition:opacity .25s var(--ease), transform .25s var(--ease);
-    }
-    .card:hover .card-cta,.card:focus-visible .card-cta{
-      opacity:1; transform:none;
-    }
-
-    /* ======================= Magazine modal overlay ===================== */
-    .modal{
-      position:fixed; inset:0; z-index:50;
-      display:none;
-      background:rgba(13,10,8,.82);
-      backdrop-filter:blur(6px);
-      overflow-y:auto;
-    }
-    .modal.is-open{ display:block; }
-
-    .modal-page{
-      min-height:100%; width:100%;
-      background:var(--ink-bg);
-      border-top:3px solid var(--ember);
-      animation:rise .45s var(--ease);
-    }
-    @keyframes rise{ from{ opacity:0; transform:translateY(26px);} to{ opacity:1; transform:none;} }
-
-    .modal-inner{
-      max-width:720px; margin:0 auto;
-      padding:4.5rem 1.5rem 6rem;
-      position:relative;
-    }
-    .modal-close{
-      position:sticky; top:1.25rem; float:right;
-      background:var(--ink-panel); color:var(--paper);
-      border:1px solid var(--ink-line); border-radius:999px;
-      width:2.6rem; height:2.6rem; font-size:1.1rem;
-      cursor:pointer; transition:border-color .2s var(--ease);
-    }
-    .modal-close:hover,.modal-close:focus-visible{ border-color:var(--ember); }
-
-    .modal-eyebrow{
-      display:flex; gap:1rem; align-items:baseline;
-      font-size:.7rem; font-weight:600;
-      letter-spacing:.16em; text-transform:uppercase;
-      color:var(--ember); margin-bottom:1.25rem;
-    }
-    .modal-eyebrow .num{
-      font-family:var(--font-display); font-weight:300;
-      font-size:3rem; letter-spacing:0; line-height:.9;
-      color:var(--ember-soft);
-      -webkit-text-stroke:1px var(--ember);
-    }
-    #modal-title{
-      font-family:var(--font-display); font-weight:600;
-      font-size:clamp(1.9rem,5vw,3rem); line-height:1.12;
-      letter-spacing:-.02em; margin-bottom:1.75rem;
-    }
-    .modal-rule{ border:none; border-top:1px solid var(--ink-line); margin:0 0 1.75rem; }
-
-    #modal-body{
-      font-family:var(--font-body);
-      font-size:1.22rem; line-height:1.75; color:var(--paper);
-    }
-    /* Magazine drop cap on the analytical paragraph */
-    #modal-body::first-letter{
-      font-family:var(--font-display); font-weight:600;
-      font-size:3.4em; line-height:.8;
-      float:left; padding:.08em .12em 0 0;
-      color:var(--ember);
-    }
-    .modal-footer-note{
-      margin-top:2.5rem; padding-top:1.25rem;
-      border-top:1px solid var(--ink-line);
-      font-size:.75rem; letter-spacing:.06em; color:var(--paper-dim);
-    }
-
-    /* =============================== Footer ============================= */
-    .site-footer{
-      max-width:1200px; margin:0 auto;
-      padding:2rem 1.5rem 3.5rem;
-      border-top:1px solid var(--ink-line);
-      display:flex; flex-wrap:wrap; gap:.5rem 2rem;
-      font-size:.75rem; color:var(--paper-dim);
-    }
-
-    body.modal-open{ overflow:hidden; }
-
-    @media (prefers-reduced-motion:reduce){
-      *,*::before,*::after{ animation:none!important; transition:none!important; }
-      html{ scroll-behavior:auto; }
-    }
+    .modal{position:fixed;inset:0;z-index:100;display:none;background:rgba(26,26,46,.35);backdrop-filter:blur(8px);overflow-y:auto;padding:2rem 1rem}
+    .modal.is-open{display:flex;justify-content:center;align-items:flex-start}
+    .modal-page{width:100%;max-width:780px;background:var(--bg-modal);border-radius:16px;box-shadow:var(--shadow-modal);overflow:hidden;animation:rise .4s var(--ease);margin:2rem 0}
+    @keyframes rise{from{opacity:0;transform:translateY(30px) scale(.98)}to{opacity:1;transform:none}}
+    .modal-header{padding:2rem 2.5rem 1.5rem;border-bottom:1px solid var(--border-light);position:relative}
+    .modal-header-stripe{position:absolute;top:0;left:0;right:0;height:5px}
+    .modal-close{position:absolute;top:1.25rem;right:1.25rem;width:2.4rem;height:2.4rem;border:1px solid var(--border-light);border-radius:50%;background:var(--bg-card);color:var(--text-secondary);font-size:1.1rem;cursor:pointer;transition:border-color .2s,color .2s;display:flex;align-items:center;justify-content:center}
+    .modal-close:hover{border-color:var(--text-secondary);color:var(--text-primary)}
+    .modal-eyebrow{font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.75rem}
+    #modal-title{font-family:var(--font-display);font-weight:700;font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.15;letter-spacing:-.02em;color:var(--text-primary)}
+    .modal-chart{padding:1.5rem 2.5rem;background:var(--bg-page);border-bottom:1px solid var(--border-light)}
+    .modal-chart img{width:100%;height:auto;border-radius:8px}
+    .modal-body{padding:2rem 2.5rem 2.5rem}
+    #modal-body{font-family:var(--font-body);font-size:1.12rem;line-height:1.8;color:var(--text-primary)}
+    #modal-body p{margin-bottom:1rem}
+    #modal-body p:last-child{margin-bottom:0}
+    #modal-body p:first-of-type::first-letter{font-family:var(--font-display);font-weight:700;font-size:3.2em;line-height:.8;float:left;padding:.06em .1em 0 0}
+    .modal-source{padding:1.25rem 2.5rem;border-top:1px solid var(--border-light);font-size:.72rem;color:var(--text-muted);letter-spacing:.04em}
+    @media(max-width:600px){.modal-header,.modal-body,.modal-chart,.modal-source{padding-left:1.25rem;padding-right:1.25rem}.modal-page{margin:.5rem 0;border-radius:12px}}
+    body.modal-open{overflow:hidden}
+    .site-footer{max-width:1240px;margin:0 auto;padding:1.5rem 1.5rem 3rem;border-top:1px solid var(--border-rule);font-size:.75rem;color:var(--text-muted)}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
   </style>
 </head>
 <body>
-
-  <!-- =============================== HEADER ============================ -->
   <header class="masthead">
-    <div class="masthead-row">
-      <h1 class="brand">i20<span class="slash">&nbsp;/</span></h1>
-      <p class="strapline">Powerful weekly insights into what is affecting the&nbsp;UK&nbsp;society.</p>
+    <div class="masthead-top">
+      <h1 class="brand">i20</h1>
+      <p class="strapline">The forces reshaping modern Britain&thinsp;&mdash;&thinsp;in twenty weekly briefings.</p>
     </div>
-    <div class="issue-line">
-      <span>Twenty briefings &middot; Economy &middot; Technology &middot; Healthcare &middot; Education &middot; Housing</span>
-      <!-- Python target: refreshed with the run date each Monday -->
-      <span>Data refreshed <strong id="last-updated">08 July 2026, 14:37 UTC</strong></span>
+    <div class="masthead-meta">
+      <span>Data refreshed <strong id="last-updated">awaiting first automated run</strong></span>
+    </div>
+    <div class="sector-legend">
+      <span class="sector-pill"><span class="dot dot--economy"></span>Economy</span>
+      <span class="sector-pill"><span class="dot dot--technology"></span>Technology</span>
+      <span class="sector-pill"><span class="dot dot--healthcare"></span>Healthcare</span>
+      <span class="sector-pill"><span class="dot dot--education"></span>Education</span>
+      <span class="sector-pill"><span class="dot dot--housing"></span>Housing</span>
     </div>
   </header>
-
-  <!-- ============================ DASHBOARD ============================= -->
   <main>
     <section class="dashboard" aria-label="Twenty weekly insights into UK society">
-        <!-- Card 01: High Street Bank Deserts -->
-        <article class="card" data-insight="01" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 01: High Street Bank Deserts">
-          <span class="card-num" aria-hidden="true">01</span>
-          <span class="card-sector">Economy</span>
-          <h3 class="card-title" id="card-01-title">High Street Bank Deserts</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-01-desc">The reported 0.6% quarter-on-quarter growth in UK GDP for Q1 2026 reflects a complex interplay of economic recovery and the evolving landscape of high street banking. Latest figure: 0.6 (2026 Q1).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--featured" data-insight="01" data-sector="economy"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 01: High Street Bank Deserts">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Economy</span></div>
+            <h3 class="card-title">High Street Bank Deserts</h3>
+            <p class="card-desc" id="card-01-desc" style="-webkit-line-clamp:6">As branch networks retreat, entire towns are left without a single counter for cash, credit or face-to-face financial advice — reshaping who can participate in the economy.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 02: The Cash Acceptance Cliff -->
-        <article class="card" data-insight="02" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 02: The Cash Acceptance Cliff">
-          <span class="card-num" aria-hidden="true">02</span>
-          <span class="card-sector">Economy</span>
-          <h3 class="card-title" id="card-02-title">The Cash Acceptance Cliff</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-02-desc">The CPIH annual inflation rate of 3.0% for May 2026 highlights a critical juncture in the UK's economic landscape, particularly concerning the "Cash Acceptance Cliff." As inflation erodes purchasing power, the reliance on cash diminishes, disproportionately affecting vulnerable populations who may lack access to digital payment methods. Latest figure: 3.0 (2026 MAY).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--standard" data-insight="02" data-sector="economy"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 02: The Cash Acceptance Cliff">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Economy</span></div>
+            <h3 class="card-title">The Cash Acceptance Cliff</h3>
+            <p class="card-desc" id="card-02-desc" style="-webkit-line-clamp:3">Card-only tills are spreading faster than the safeguards for the millions who still depend on physical money.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 03: The Regional Productivity Divide -->
-        <article class="card" data-insight="03" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 03: The Regional Productivity Divide">
-          <span class="card-num" aria-hidden="true">03</span>
-          <span class="card-sector">Economy</span>
-          <h3 class="card-title" id="card-03-title">The Regional Productivity Divide</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-03-desc">The recent statistic indicating a 0.6% quarter-on-quarter growth in UK GDP for Q1 2026 underscores the persistent regional productivity divide that characterises modern British life. Latest figure: 0.6 (2026 Q1).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--medium" data-insight="03" data-sector="economy"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 03: The Regional Productivity Divide">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Economy</span></div>
+            <h3 class="card-title">The Regional Productivity Divide</h3>
+            <p class="card-desc" id="card-03-desc" style="-webkit-line-clamp:4">Output per hour in parts of the North and Midlands trails London by a third — and the gap shapes wages, services and life chances across communities.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 04: The Gig Economy Pension Void -->
-        <article class="card" data-insight="04" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 04: The Gig Economy Pension Void">
-          <span class="card-num" aria-hidden="true">04</span>
-          <span class="card-sector">Economy</span>
-          <h3 class="card-title" id="card-04-title">The Gig Economy Pension Void</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-04-desc">The current employment rate of 75.0% for individuals aged 16-64 in the UK reflects a robust labour market; however, it also underscores the precarious nature of the gig economy, which often lacks adequate pension provisions. Latest figure: 75.0 (2026 MAR).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--standard" data-insight="04" data-sector="economy"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 04: The Gig Economy Pension Void">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Economy</span></div>
+            <h3 class="card-title">The Gig Economy Pension Void</h3>
+            <p class="card-desc" id="card-04-desc" style="-webkit-line-clamp:3">Millions of self-employed and platform workers are drifting towards retirement with no employer contribution.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 05: The Rural Broadband Last Mile -->
-        <article class="card" data-insight="05" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 05: The Rural Broadband Last Mile">
-          <span class="card-num" aria-hidden="true">05</span>
-          <span class="card-sector">Technology</span>
-          <h3 class="card-title" id="card-05-title">The Rural Broadband Last Mile</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-05-desc">The reported 0.6% quarter-on-quarter growth in UK GDP for Q1 2026 signifies a modest economic recovery, yet it underscores the increasing urgency of addressing the digital divide, particularly in rural areas. Latest figure: 0.6 (2026 Q1).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--featured" data-insight="05" data-sector="technology"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 05: The Rural Broadband Last Mile">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Technology</span></div>
+            <h3 class="card-title">The Rural Broadband Last Mile</h3>
+            <p class="card-desc" id="card-05-desc" style="-webkit-line-clamp:6">Gigabit Britain is arriving street by street — and skipping the hamlets where connectivity would change lives most. For farms, clinics and home workers, the last mile is the whole story.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 06: Digital-Only by Default -->
-        <article class="card" data-insight="06" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 06: Digital-Only by Default">
-          <span class="card-num" aria-hidden="true">06</span>
-          <span class="card-sector">Technology</span>
-          <h3 class="card-title" id="card-06-title">Digital-Only by Default</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-06-desc">The UK’s economic inactivity rate of 21.0% for those aged 16-64 in March 2026 underscores significant implications for the workforce amidst a rapidly digitising landscape. Latest figure: 21.0 (2026 MAR).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--medium" data-insight="06" data-sector="technology"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 06: Digital-Only by Default">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Technology</span></div>
+            <h3 class="card-title">Digital-Only by Default</h3>
+            <p class="card-desc" id="card-06-desc" style="-webkit-line-clamp:4">As public services move online, the ten million Britons with limited digital skills are asked to navigate a state they cannot reach.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 07: AI and the Entry-Level Job -->
-        <article class="card" data-insight="07" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 07: AI and the Entry-Level Job">
-          <span class="card-num" aria-hidden="true">07</span>
-          <span class="card-sector">Technology</span>
-          <h3 class="card-title" id="card-07-title">AI and the Entry-Level Job</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-07-desc">The tasks that once trained juniors — drafting, summarising, first-pass analysis — are precisely the tasks machines now do.</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--featured" data-insight="07" data-sector="technology"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 07: AI and the Entry-Level Job">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Technology</span></div>
+            <h3 class="card-title">AI and the Entry-Level Job</h3>
+            <p class="card-desc" id="card-07-desc" style="-webkit-line-clamp:6">The tasks that once trained juniors — drafting, summarising, first-pass analysis — are precisely the tasks machines now do. The bottom rung of the career ladder is being quietly removed.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 08: Britain's Data Centre Boom -->
-        <article class="card" data-insight="08" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 08: Britain's Data Centre Boom">
-          <span class="card-num" aria-hidden="true">08</span>
-          <span class="card-sector">Technology</span>
-          <h3 class="card-title" id="card-08-title">Britain's Data Centre Boom</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-08-desc">The recent statistic of 0.6% GDP growth for Q1 2026 underscores the burgeoning significance of the data centre sector within the UK economy. Latest figure: 0.6 (2026 Q1).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--standard" data-insight="08" data-sector="technology"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 08: Britain’s Data Centre Boom">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Technology</span></div>
+            <h3 class="card-title">Britain’s Data Centre Boom</h3>
+            <p class="card-desc" id="card-08-desc" style="-webkit-line-clamp:3">The AI build-out is colliding with the grid, the planning system and local water supplies.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 09: NHS Dentistry Deserts -->
-        <article class="card" data-insight="09" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 09: NHS Dentistry Deserts">
-          <span class="card-num" aria-hidden="true">09</span>
-          <span class="card-sector">Healthcare</span>
-          <h3 class="card-title" id="card-09-title">NHS Dentistry Deserts</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-09-desc">The CPIH annual inflation rate of 3.0% as of May 2026 underscores the growing economic pressures faced by the UK population, particularly in accessing essential services like NHS dentistry. Latest figure: 3.0 (2026 MAY).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--featured" data-insight="09" data-sector="healthcare"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 09: NHS Dentistry Deserts">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Healthcare</span></div>
+            <h3 class="card-title">NHS Dentistry Deserts</h3>
+            <p class="card-desc" id="card-09-desc" style="-webkit-line-clamp:6">In swathes of the country, no practice is taking new NHS patients — and DIY dentistry is quietly returning. Tooth decay remains the leading cause of hospital admission for young children.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 10: The Eight A.M. GP Scramble -->
-        <article class="card" data-insight="10" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 10: The Eight A.M. GP Scramble">
-          <span class="card-num" aria-hidden="true">10</span>
-          <span class="card-sector">Healthcare</span>
-          <h3 class="card-title" id="card-10-title">The Eight A.M. GP Scramble</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-10-desc">The current economic inactivity rate of 21.0% for individuals aged 16-64 in the UK reflects significant challenges within the healthcare sector, particularly highlighted by the "Eight A.M. Latest figure: 21.0 (2026 MAR).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--medium" data-insight="10" data-sector="healthcare"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 10: The Eight A.M. GP Scramble">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Healthcare</span></div>
+            <h3 class="card-title">The Eight A.M. GP Scramble</h3>
+            <p class="card-desc" id="card-10-desc" style="-webkit-line-clamp:4">Demand for general practice has outgrown the workforce, turning the morning phone queue into a national ritual of frustration.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 11: The Social Care Workforce Gap -->
-        <article class="card" data-insight="11" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 11: The Social Care Workforce Gap">
-          <span class="card-num" aria-hidden="true">11</span>
-          <span class="card-sector">Healthcare</span>
-          <h3 class="card-title" id="card-11-title">The Social Care Workforce Gap</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-11-desc">Over a hundred thousand care posts sit vacant while the population ages — the quiet crisis behind the NHS's loud one.</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--standard" data-insight="11" data-sector="healthcare"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 11: The Social Care Workforce Gap">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Healthcare</span></div>
+            <h3 class="card-title">The Social Care Workforce Gap</h3>
+            <p class="card-desc" id="card-11-desc" style="-webkit-line-clamp:3">Over a hundred thousand care posts sit vacant while the population ages — the quiet crisis behind the NHS’s loud one.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 12: Too Ill to Work -->
-        <article class="card" data-insight="12" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 12: Too Ill to Work">
-          <span class="card-num" aria-hidden="true">12</span>
-          <span class="card-sector">Healthcare</span>
-          <h3 class="card-title" id="card-12-title">Too Ill to Work</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-12-desc">The UK economic inactivity rate of 21.0% for those aged 16-64 in March 2026 underscores a significant challenge in modern British society, particularly within the healthcare sector. Latest figure: 21.0 (2026 MAR).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--featured" data-insight="12" data-sector="healthcare"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 12: Too Ill to Work">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Healthcare</span></div>
+            <h3 class="card-title">Too Ill to Work</h3>
+            <p class="card-desc" id="card-12-desc" style="-webkit-line-clamp:6">Record numbers of working-age Britons are outside the labour force because of long-term sickness — reshaping the economy as profoundly as any policy decision.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 13: The AI State School Divide -->
-        <article class="card" data-insight="13" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 13: The AI State School Divide">
-          <span class="card-num" aria-hidden="true">13</span>
-          <span class="card-sector">Education</span>
-          <h3 class="card-title" id="card-13-title">The AI State School Divide</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-13-desc">The current unemployment rate of 4.9% for those aged 16 and over reflects a complex interplay within the modern UK socio-economic landscape, particularly in the context of the AI State School Divide. Latest figure: 4.9 (2026 MAR).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--medium" data-insight="13" data-sector="education"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 13: The AI State School Divide">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Education</span></div>
+            <h3 class="card-title">The AI State School Divide</h3>
+            <p class="card-desc" id="card-13-desc" style="-webkit-line-clamp:4">Private schools are hiring AI leads while many state classrooms lack the bandwidth to load the tools. A new axis of advantage is forming.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 14: The Persistent Absence Generation -->
-        <article class="card" data-insight="14" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 14: The Persistent Absence Generation">
-          <span class="card-num" aria-hidden="true">14</span>
-          <span class="card-sector">Education</span>
-          <h3 class="card-title" id="card-14-title">The Persistent Absence Generation</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-14-desc">The current economic inactivity rate of 21.0% for those aged 16-64 signifies a growing challenge for the UK, particularly within the education sector. Latest figure: 21.0 (2026 MAR).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--featured" data-insight="14" data-sector="education"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 14: The Persistent Absence Generation">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Education</span></div>
+            <h3 class="card-title">The Persistent Absence Generation</h3>
+            <p class="card-desc" id="card-14-desc" style="-webkit-line-clamp:6">One in five pupils in England now misses at least a tenth of school — attendance has not recovered from the pandemic and the social contract between families and schools remains frayed.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 15: The Teacher Retention Cliff -->
-        <article class="card" data-insight="15" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 15: The Teacher Retention Cliff">
-          <span class="card-num" aria-hidden="true">15</span>
-          <span class="card-sector">Education</span>
-          <h3 class="card-title" id="card-15-title">The Teacher Retention Cliff</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-15-desc">A third of new teachers leave within five years, and recruitment targets in key subjects are missed year after year.</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--standard" data-insight="15" data-sector="education"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 15: The Teacher Retention Cliff">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Education</span></div>
+            <h3 class="card-title">The Teacher Retention Cliff</h3>
+            <p class="card-desc" id="card-15-desc" style="-webkit-line-clamp:3">A third of new teachers leave within five years, and recruitment targets in key subjects are missed year after year.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 16: The SEND Funding Squeeze -->
-        <article class="card" data-insight="16" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 16: The SEND Funding Squeeze">
-          <span class="card-num" aria-hidden="true">16</span>
-          <span class="card-sector">Education</span>
-          <h3 class="card-title" id="card-16-title">The SEND Funding Squeeze</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-16-desc">The CPIH annual inflation rate of 3.0% for May 2026 significantly exacerbates the SEND funding squeeze in the UK education sector. Latest figure: 3.0 (2026 MAY).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--medium" data-insight="16" data-sector="education"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 16: The SEND Funding Squeeze">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Education</span></div>
+            <h3 class="card-title">The SEND Funding Squeeze</h3>
+            <p class="card-desc" id="card-16-desc" style="-webkit-line-clamp:4">Demand for special educational needs support has surged while councils’ high-needs budgets sink deeper into deficit each year.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 17: Generation Rent at Fifty -->
-        <article class="card" data-insight="17" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 17: Generation Rent at Fifty">
-          <span class="card-num" aria-hidden="true">17</span>
-          <span class="card-sector">Housing</span>
-          <h3 class="card-title" id="card-17-title">Generation Rent at Fifty</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-17-desc">The CPIH annual inflation rate of 3.0% as of May 2026 underscores the escalating challenges faced by Generation Rent in the UK. Latest figure: 3.0 (2026 MAY).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--featured" data-insight="17" data-sector="housing"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 17: Generation Rent at Fifty">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Housing</span></div>
+            <h3 class="card-title">Generation Rent at Fifty</h3>
+            <p class="card-desc" id="card-17-desc" style="-webkit-line-clamp:6">Private renting is no longer a young person’s waiting room — it is where a growing share of Britons will grow old, exposed to insecure tenancies and rent inflation as earnings plateau.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 18: The Leasehold Trap -->
-        <article class="card" data-insight="18" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 18: The Leasehold Trap">
-          <span class="card-num" aria-hidden="true">18</span>
-          <span class="card-sector">Housing</span>
-          <h3 class="card-title" id="card-18-title">The Leasehold Trap</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-18-desc">The CPIH annual inflation rate of 3.0% for May 2026 significantly impacts modern UK life, particularly within the housing sector, where the leasehold trap remains a pressing concern. Latest figure: 3.0 (2026 MAY).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--standard" data-insight="18" data-sector="housing"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 18: The Leasehold Trap">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Housing</span></div>
+            <h3 class="card-title">The Leasehold Trap</h3>
+            <p class="card-desc" id="card-18-desc" style="-webkit-line-clamp:3">Millions of homeowners own the bricks but not the ground — and the ground keeps sending invoices.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 19: Childhoods in Temporary Accommodation -->
-        <article class="card" data-insight="19" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 19: Childhoods in Temporary Accommodation">
-          <span class="card-num" aria-hidden="true">19</span>
-          <span class="card-sector">Housing</span>
-          <h3 class="card-title" id="card-19-title">Childhoods in Temporary Accommodation</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-19-desc">The current unemployment rate of 4.9% for those aged 16 and over in the UK significantly influences childhoods in temporary accommodation, as economic instability often exacerbates housing insecurity. Latest figure: 4.9 (2026 MAR).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--medium" data-insight="19" data-sector="housing"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 19: Childhoods in Temporary Accommodation">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Housing</span></div>
+            <h3 class="card-title">Childhoods in Temporary Accommodation</h3>
+            <p class="card-desc" id="card-19-desc" style="-webkit-line-clamp:4">A record number of children are growing up in B&Bs and converted offices, moved from placement to placement with lasting consequences.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
-        <!-- Card 20: The Empty Homes Paradox -->
-        <article class="card" data-insight="20" tabindex="0" role="button"
-                 aria-haspopup="dialog" aria-label="Read insight 20: The Empty Homes Paradox">
-          <span class="card-num" aria-hidden="true">20</span>
-          <span class="card-sector">Housing</span>
-          <h3 class="card-title" id="card-20-title">The Empty Homes Paradox</h3>
-          <!-- Python target: short weekly summary shown on the card face -->
-          <p class="card-desc" id="card-20-desc">The recent statistic indicating a 0.6% quarter-on-quarter growth in UK GDP for 2026 Q1 underscores a complex paradox within the housing sector: despite economic expansion, a significant number of homes remain unoccupied. Latest figure: 0.6 (2026 Q1).</p>
-          <span class="card-cta" aria-hidden="true">Read the insight&thinsp;&rarr;</span>
+        <article class="card card--standard" data-insight="20" data-sector="housing"
+                 tabindex="0" role="button" aria-haspopup="dialog"
+                 aria-label="Read insight 20: The Empty Homes Paradox">
+          <div class="card-stripe" aria-hidden="true"></div>
+          <div class="card-inner">
+            <div class="card-meta"><span class="card-sector">Housing</span></div>
+            <h3 class="card-title">The Empty Homes Paradox</h3>
+            <p class="card-desc" id="card-20-desc" style="-webkit-line-clamp:3">Hundreds of thousands of homes stand long-term empty in the middle of a housing shortage — the homes exist but the mechanism to fill them does not.</p>
+            <span class="card-cta" aria-hidden="true">Read the insight &#8594;</span>
+          </div>
         </article>
     </section>
-
-    <!-- ================== HIDDEN SOURCE ARTICLES (20) =================== -->
-    <!-- Never displayed directly; the modal clones text from these nodes.  -->
     <div id="insight-store" hidden>
-      <!-- Hidden source article for card 01. The modal clones from here. -->
-      <article class="insight-source" id="insight-01" data-sector="Economy" hidden>
+      <article class="insight-source" id="insight-01" data-sector="Economy"
+               data-sector-class="economy" data-chart="charts/gdp_growth.png" hidden>
         <h2 class="insight-title" id="insight-01-title">High Street Bank Deserts</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-01-content">The reported 0.6% quarter-on-quarter growth in UK GDP for Q1 2026 reflects a complex interplay of economic recovery and the evolving landscape of high street banking. As bank deserts emerge in various regions, particularly in rural and economically disadvantaged areas, this growth statistic underscores the urgent need for accessible financial services. The absence of local banking facilities can exacerbate economic inequalities, hindering small businesses and limiting consumer access to essential financial products. Consequently, the interplay between GDP growth and the proliferation of bank deserts highlights the necessity for strategic interventions to ensure that economic advancements are equitably distributed across the UK.</p>
+        <div class="insight-body" id="insight-01-content"><p>More than six thousand bank branches have closed across the United Kingdom since 2015, leaving hundreds of communities without any physical banking presence at all. The burden falls hardest on older residents, small traders and the digitally excluded, for whom a branch is not nostalgia but infrastructure. This card will refresh automatically each Monday with new analysis grounded in the latest official data.</p></div>
       </article>
-      <!-- Hidden source article for card 02. The modal clones from here. -->
-      <article class="insight-source" id="insight-02" data-sector="Economy" hidden>
+      <article class="insight-source" id="insight-02" data-sector="Economy"
+               data-sector-class="economy" data-chart="charts/cpih_inflation.png" hidden>
         <h2 class="insight-title" id="insight-02-title">The Cash Acceptance Cliff</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-02-content">The CPIH annual inflation rate of 3.0% for May 2026 highlights a critical juncture in the UK's economic landscape, particularly concerning the "Cash Acceptance Cliff." As inflation erodes purchasing power, the reliance on cash diminishes, disproportionately affecting vulnerable populations who may lack access to digital payment methods. This statistic underscores a growing divide, as inflation pressures compel consumers to adapt to a cashless economy, leaving behind those who are less technologically adept or financially secure. Consequently, the socio-economic implications are profound, as increased exclusion risks deepening inequalities within the fabric of modern British society, challenging the notion of equitable access to goods and services.</p>
+        <div class="insight-body" id="insight-02-content"><p>Roughly one in twenty adults in Britain still relies on cash for most daily spending, yet acceptance is eroding café by café, car park by car park. Fresh analysis of the latest inflation and spending data will appear here every Monday morning.</p></div>
       </article>
-      <!-- Hidden source article for card 03. The modal clones from here. -->
-      <article class="insight-source" id="insight-03" data-sector="Economy" hidden>
+      <article class="insight-source" id="insight-03" data-sector="Economy"
+               data-sector-class="economy" data-chart="charts/gdp_growth.png" hidden>
         <h2 class="insight-title" id="insight-03-title">The Regional Productivity Divide</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-03-content">The recent statistic indicating a 0.6% quarter-on-quarter growth in UK GDP for Q1 2026 underscores the persistent regional productivity divide that characterises modern British life. This modest growth, while a positive sign, highlights the uneven economic landscape where metropolitan areas, particularly in the South, continue to thrive, contrasting sharply with stagnation in peripheral regions. The implications are profound; they exacerbate disparities in employment opportunities, investment, and social mobility, leading to a bifurcated society. As policymakers grapple with these challenges, addressing the root causes of this divide becomes imperative to ensure equitable growth and sustainable development across the UK.</p>
+        <div class="insight-body" id="insight-03-content"><p>Britain’s productivity puzzle is really a geography puzzle: London and the South East generate output per hour that much of the rest of the country cannot match. This slot updates weekly with a fresh reading of the national growth figures.</p></div>
       </article>
-      <!-- Hidden source article for card 04. The modal clones from here. -->
-      <article class="insight-source" id="insight-04" data-sector="Economy" hidden>
+      <article class="insight-source" id="insight-04" data-sector="Economy"
+               data-sector-class="economy" data-chart="charts/employment_rate.png" hidden>
         <h2 class="insight-title" id="insight-04-title">The Gig Economy Pension Void</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-04-content">The current employment rate of 75.0% for individuals aged 16-64 in the UK reflects a robust labour market; however, it also underscores the precarious nature of the gig economy, which often lacks adequate pension provisions. As more workers engage in flexible, short-term contracts, they face significant retirement savings gaps that could exacerbate socioeconomic inequalities in later life. This statistic highlights the urgent need for policy reform to ensure that gig economy workers have access to sustainable pension schemes, thereby fostering long-term financial security and promoting a more equitable society as the workforce continues to evolve in response to economic shifts.</p>
+        <div class="insight-body" id="insight-04-content"><p>Automatic enrolment transformed pension saving for employees, but it never reached the self-employed, whose saving rates have collapsed over two decades. Weekly analysis of the latest labour market data will be published here each Monday.</p></div>
       </article>
-      <!-- Hidden source article for card 05. The modal clones from here. -->
-      <article class="insight-source" id="insight-05" data-sector="Technology" hidden>
+      <article class="insight-source" id="insight-05" data-sector="Technology"
+               data-sector-class="technology" data-chart="charts/gdp_growth.png" hidden>
         <h2 class="insight-title" id="insight-05-title">The Rural Broadband Last Mile</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-05-content">The reported 0.6% quarter-on-quarter growth in UK GDP for Q1 2026 signifies a modest economic recovery, yet it underscores the increasing urgency of addressing the digital divide, particularly in rural areas. As the rural broadband last mile remains a critical barrier to equitable access to technology, this statistic highlights the need for targeted investment in infrastructure that can stimulate economic activity in underserved regions. Improved connectivity not only enhances opportunities for local businesses but also fosters broader social integration, allowing rural communities to engage more fully in the digital economy, ultimately contributing to sustained national growth.</p>
+        <div class="insight-body" id="insight-05-content"><p>Full-fibre coverage has expanded rapidly in cities, yet the final few per cent of premises — overwhelmingly rural — remain the most expensive and least commercially attractive to connect. Updated commentary lands here automatically every week.</p></div>
       </article>
-      <!-- Hidden source article for card 06. The modal clones from here. -->
-      <article class="insight-source" id="insight-06" data-sector="Technology" hidden>
+      <article class="insight-source" id="insight-06" data-sector="Technology"
+               data-sector-class="technology" data-chart="charts/economic_inactivity.png" hidden>
         <h2 class="insight-title" id="insight-06-title">Digital-Only by Default</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-06-content">The UK’s economic inactivity rate of 21.0% for those aged 16-64 in March 2026 underscores significant implications for the workforce amidst a rapidly digitising landscape. This high percentage reflects not only traditional barriers to employment but also a potential skills gap exacerbated by the shift towards digital-only platforms. As industries increasingly adopt technology, the risk of marginalising those unable to engage with digital tools becomes pronounced, potentially widening socio-economic divides. Furthermore, this statistic highlights the pressing need for targeted educational initiatives and training programmes to equip individuals with necessary digital skills, ensuring inclusivity in a technology-driven economy.</p>
+        <div class="insight-body" id="insight-06-content"><p>From Universal Credit to GP registration, the default channel for dealing with the British state is now a screen. This analysis refreshes each Monday with the latest official indicators.</p></div>
       </article>
-      <!-- Hidden source article for card 07. The modal clones from here. -->
-      <article class="insight-source" id="insight-07" data-sector="Technology" hidden>
+      <article class="insight-source" id="insight-07" data-sector="Technology"
+               data-sector-class="technology" data-chart="charts/vacancies.png" hidden>
         <h2 class="insight-title" id="insight-07-title">AI and the Entry-Level Job</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-07-content">Graduate schemes and junior roles have long served as the apprenticeship of white-collar Britain. As generative systems absorb routine cognitive work, the bottom rung of the career ladder is being quietly sawn off, with consequences for social mobility that will take a decade to surface. Fresh labour market analysis appears here weekly.</p>
+        <div class="insight-body" id="insight-07-content"><p>Graduate schemes and junior roles have long served as the apprenticeship of white-collar Britain. As generative systems absorb routine cognitive work, the bottom rung of the career ladder is being quietly sawn off. Fresh labour market analysis appears here weekly.</p></div>
       </article>
-      <!-- Hidden source article for card 08. The modal clones from here. -->
-      <article class="insight-source" id="insight-08" data-sector="Technology" hidden>
-        <h2 class="insight-title" id="insight-08-title">Britain's Data Centre Boom</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-08-content">The recent statistic of 0.6% GDP growth for Q1 2026 underscores the burgeoning significance of the data centre sector within the UK economy. This growth not only reflects the increasing demand for digital infrastructure but also highlights the essential role of technology in driving economic resilience. As businesses pivot towards digitalisation, data centres are becoming critical to maintaining operational efficiency and capacity. Consequently, this trend is likely to foster job creation and investment in related industries, thereby enhancing regional development. However, it also raises concerns regarding environmental sustainability and the need for balanced policies that address both economic and ecological impacts.</p>
+      <article class="insight-source" id="insight-08" data-sector="Technology"
+               data-sector-class="technology" data-chart="charts/gdp_growth.png" hidden>
+        <h2 class="insight-title" id="insight-08-title">Britain’s Data Centre Boom</h2>
+        <div class="insight-body" id="insight-08-content"><p>New data centre campuses are among the largest single electricity consumers ever connected to the British grid. Weekly commentary is published here automatically.</p></div>
       </article>
-      <!-- Hidden source article for card 09. The modal clones from here. -->
-      <article class="insight-source" id="insight-09" data-sector="Healthcare" hidden>
+      <article class="insight-source" id="insight-09" data-sector="Healthcare"
+               data-sector-class="healthcare" data-chart="charts/cpih_inflation.png" hidden>
         <h2 class="insight-title" id="insight-09-title">NHS Dentistry Deserts</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-09-content">The CPIH annual inflation rate of 3.0% as of May 2026 underscores the growing economic pressures faced by the UK population, particularly in accessing essential services like NHS dentistry. As inflation rises, so too do the costs associated with dental care, exacerbating the crisis of NHS dentistry deserts, where communities struggle to find available practitioners. This situation erodes public health outcomes, as individuals may forgo necessary dental treatment due to financial constraints, leading to a deterioration in overall oral health. Consequently, the interplay between inflation and healthcare accessibility becomes a critical concern for policymakers aiming to ensure equitable health provision across the nation.</p>
+        <div class="insight-body" id="insight-09-content"><p>Millions of adults in England could not access an NHS dentist last year, and in some coastal and rural areas no practice accepts new health-service patients at all. This card is refreshed every Monday with analysis tied to the latest official statistics.</p></div>
       </article>
-      <!-- Hidden source article for card 10. The modal clones from here. -->
-      <article class="insight-source" id="insight-10" data-sector="Healthcare" hidden>
+      <article class="insight-source" id="insight-10" data-sector="Healthcare"
+               data-sector-class="healthcare" data-chart="charts/economic_inactivity.png" hidden>
         <h2 class="insight-title" id="insight-10-title">The Eight A.M. GP Scramble</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-10-content">The current economic inactivity rate of 21.0% for individuals aged 16-64 in the UK reflects significant challenges within the healthcare sector, particularly highlighted by the "Eight A.M. GP Scramble". This statistic underscores the growing disconnect between the workforce and available economic opportunities, exacerbating pressures on primary care services. As a considerable portion of the population remains disengaged from employment, healthcare demand escalates, leading to increased strain on general practitioners and longer waiting times for appointments. Consequently, this situation not only impacts patient care but also highlights the urgent need for policy interventions aimed at integrating the economically inactive back into the workforce.</p>
+        <div class="insight-body" id="insight-10-content"><p>General practice delivers more appointments than ever, yet the number of fully qualified GPs per patient has fallen for a decade. Updated analysis is generated here automatically each week.</p></div>
       </article>
-      <!-- Hidden source article for card 11. The modal clones from here. -->
-      <article class="insight-source" id="insight-11" data-sector="Healthcare" hidden>
+      <article class="insight-source" id="insight-11" data-sector="Healthcare"
+               data-sector-class="healthcare" data-chart="charts/vacancies.png" hidden>
         <h2 class="insight-title" id="insight-11-title">The Social Care Workforce Gap</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-11-content">Adult social care employs more people than the NHS yet pays close to the legal minimum, and vacancy rates dwarf those of almost every other sector. Every unfilled care post ripples backwards into hospital beds that cannot be freed. Weekly analysis of workforce and inactivity data appears here each Monday.</p>
+        <div class="insight-body" id="insight-11-content"><p>Adult social care employs more people than the NHS yet pays close to the legal minimum. Every unfilled care post ripples backwards into hospital beds that cannot be freed. Weekly analysis appears here each Monday.</p></div>
       </article>
-      <!-- Hidden source article for card 12. The modal clones from here. -->
-      <article class="insight-source" id="insight-12" data-sector="Healthcare" hidden>
+      <article class="insight-source" id="insight-12" data-sector="Healthcare"
+               data-sector-class="healthcare" data-chart="charts/economic_inactivity.png" hidden>
         <h2 class="insight-title" id="insight-12-title">Too Ill to Work</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-12-content">The UK economic inactivity rate of 21.0% for those aged 16-64 in March 2026 underscores a significant challenge in modern British society, particularly within the healthcare sector. This statistic highlights the growing number of individuals unable to participate in the workforce due to health-related issues, which places considerable strain on both public services and the economy. It reflects broader societal implications, including the need for improved mental and physical health support systems, as well as potential shifts in workplace policies to accommodate an increasingly diverse range of health conditions. Consequently, addressing this inactivity is essential for fostering a more resilient labour market and enhancing overall societal wellbeing.</p>
+        <div class="insight-body" id="insight-12-content"><p>Long-term illness has become one of the defining economic facts of post-pandemic Britain, with millions of working-age people economically inactive on health grounds. The latest inactivity figures are analysed here automatically every week.</p></div>
       </article>
-      <!-- Hidden source article for card 13. The modal clones from here. -->
-      <article class="insight-source" id="insight-13" data-sector="Education" hidden>
+      <article class="insight-source" id="insight-13" data-sector="Education"
+               data-sector-class="education" data-chart="charts/unemployment.png" hidden>
         <h2 class="insight-title" id="insight-13-title">The AI State School Divide</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-13-content">The current unemployment rate of 4.9% for those aged 16 and over reflects a complex interplay within the modern UK socio-economic landscape, particularly in the context of the AI State School Divide. As artificial intelligence increasingly permeates various sectors, students from state schools often face significant disparities in access to advanced technological education and resources compared to their privately educated peers. This statistic underscores the urgency for policy intervention to ensure equitable access to AI-related learning opportunities, thereby enabling all students to compete effectively in a rapidly evolving job market. Failure to address this divide risks perpetuating existing inequalities and limiting social mobility.</p>
+        <div class="insight-body" id="insight-13-content"><p>Access to well-deployed educational technology is becoming a new axis of advantage: independent schools experiment with tutoring systems while underfunded state schools ration devices. Fresh weekly analysis is published here each Monday.</p></div>
       </article>
-      <!-- Hidden source article for card 14. The modal clones from here. -->
-      <article class="insight-source" id="insight-14" data-sector="Education" hidden>
+      <article class="insight-source" id="insight-14" data-sector="Education"
+               data-sector-class="education" data-chart="charts/economic_inactivity.png" hidden>
         <h2 class="insight-title" id="insight-14-title">The Persistent Absence Generation</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-14-content">The current economic inactivity rate of 21.0% for those aged 16-64 signifies a growing challenge for the UK, particularly within the education sector. This statistic reflects not only the disengagement of a significant portion of the workforce but also highlights potential barriers to educational attainment and vocational training. As a result, the economic inactivity may perpetuate cycles of poverty and inequality, particularly among younger generations who may feel disconnected from traditional pathways to employment. Policymakers must address these issues through targeted educational initiatives and support systems to foster engagement and reintegration into the workforce, thereby enhancing social mobility and economic resilience.</p>
+        <div class="insight-body" id="insight-14-content"><p>Persistent absence has roughly doubled since 2019, concentrated among disadvantaged pupils and those with special educational needs. This slot updates automatically each week with data-grounded commentary.</p></div>
       </article>
-      <!-- Hidden source article for card 15. The modal clones from here. -->
-      <article class="insight-source" id="insight-15" data-sector="Education" hidden>
+      <article class="insight-source" id="insight-15" data-sector="Education"
+               data-sector-class="education" data-chart="charts/vacancies.png" hidden>
         <h2 class="insight-title" id="insight-15-title">The Teacher Retention Cliff</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-15-content">England trains tens of thousands of teachers annually yet struggles to keep them, with workload and pay driving an exodus that hits physics, maths and computing hardest. Every departure transfers cost onto the colleagues who remain. Weekly analysis tied to the latest labour market data appears here each Monday.</p>
+        <div class="insight-body" id="insight-15-content"><p>England trains tens of thousands of teachers annually yet struggles to keep them. Weekly analysis tied to the latest labour market data appears here each Monday.</p></div>
       </article>
-      <!-- Hidden source article for card 16. The modal clones from here. -->
-      <article class="insight-source" id="insight-16" data-sector="Education" hidden>
+      <article class="insight-source" id="insight-16" data-sector="Education"
+               data-sector-class="education" data-chart="charts/cpih_inflation.png" hidden>
         <h2 class="insight-title" id="insight-16-title">The SEND Funding Squeeze</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-16-content">The CPIH annual inflation rate of 3.0% for May 2026 significantly exacerbates the SEND funding squeeze in the UK education sector. As inflation erodes the purchasing power of allocated resources, local authorities struggle to meet the rising costs associated with special educational needs and disabilities support. This financial strain not only affects the quality and availability of essential services but also places additional pressure on families who rely on these provisions. Consequently, the SEND funding crisis could lead to widening inequalities in educational outcomes, challenging the government's commitment to inclusive education and potentially fostering social discontent among affected communities.</p>
+        <div class="insight-body" id="insight-16-content"><p>Requests for education, health and care plans have risen sharply for a decade. Fresh analysis is generated and published here automatically every Monday.</p></div>
       </article>
-      <!-- Hidden source article for card 17. The modal clones from here. -->
-      <article class="insight-source" id="insight-17" data-sector="Housing" hidden>
+      <article class="insight-source" id="insight-17" data-sector="Housing"
+               data-sector-class="housing" data-chart="charts/cpih_inflation.png" hidden>
         <h2 class="insight-title" id="insight-17-title">Generation Rent at Fifty</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-17-content">The CPIH annual inflation rate of 3.0% as of May 2026 underscores the escalating challenges faced by Generation Rent in the UK. As housing costs continue to outpace wage growth, this inflationary pressure exacerbates financial instability for renters, who are increasingly unable to save for future home ownership. The rising cost of living, coupled with stagnant incomes, fuels a sense of disenfranchisement among younger generations, leading to heightened anxiety about long-term financial security. Moreover, the persistent gap between rental prices and affordability indicates a systemic failure in housing policy, necessitating urgent reforms to ensure equitable access to secure and affordable housing for all.</p>
+        <div class="insight-body" id="insight-17-content"><p>The proportion of people in their forties and fifties renting privately has more than doubled in two decades. Weekly commentary grounded in the latest price data appears here each Monday.</p></div>
       </article>
-      <!-- Hidden source article for card 18. The modal clones from here. -->
-      <article class="insight-source" id="insight-18" data-sector="Housing" hidden>
+      <article class="insight-source" id="insight-18" data-sector="Housing"
+               data-sector-class="housing" data-chart="charts/cpih_inflation.png" hidden>
         <h2 class="insight-title" id="insight-18-title">The Leasehold Trap</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-18-content">The CPIH annual inflation rate of 3.0% for May 2026 significantly impacts modern UK life, particularly within the housing sector, where the leasehold trap remains a pressing concern. As inflation erodes purchasing power, leaseholders face rising ground rents and associated costs, exacerbating financial strain. This situation not only hampers homeownership aspirations but also perpetuates socio-economic disparities, as many leaseholders, often from lower-income backgrounds, struggle to meet escalating payments. Consequently, the growing discontent surrounding leasehold agreements may catalyse calls for reform, influencing public policy and potentially reshaping the housing market dynamics in a bid to ensure fairer living conditions for all.</p>
+        <div class="insight-body" id="insight-18-content"><p>Nearly five million homes in England are leasehold, a tenure that can bind owners to escalating ground rents and opaque service charges. This card refreshes automatically every week with new data-led analysis.</p></div>
       </article>
-      <!-- Hidden source article for card 19. The modal clones from here. -->
-      <article class="insight-source" id="insight-19" data-sector="Housing" hidden>
+      <article class="insight-source" id="insight-19" data-sector="Housing"
+               data-sector-class="housing" data-chart="charts/unemployment.png" hidden>
         <h2 class="insight-title" id="insight-19-title">Childhoods in Temporary Accommodation</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-19-content">The current unemployment rate of 4.9% for those aged 16 and over in the UK significantly influences childhoods in temporary accommodation, as economic instability often exacerbates housing insecurity. A notable proportion of unemployed adults are parents, which can lead to increased reliance on temporary housing solutions. This precarious living situation adversely affects children's educational opportunities and mental well-being, perpetuating cycles of poverty and social exclusion. Furthermore, the stigma associated with temporary accommodation can hinder social integration, limiting children's access to supportive community networks. As such, the interplay between unemployment and housing stability remains critical in shaping the trajectories of vulnerable childhoods across the UK.</p>
+        <div class="insight-body" id="insight-19-content"><p>More children now live in temporary accommodation in England than at any point on record. Updated weekly analysis of the underlying pressures is published here each Monday.</p></div>
       </article>
-      <!-- Hidden source article for card 20. The modal clones from here. -->
-      <article class="insight-source" id="insight-20" data-sector="Housing" hidden>
+      <article class="insight-source" id="insight-20" data-sector="Housing"
+               data-sector-class="housing" data-chart="charts/gdp_growth.png" hidden>
         <h2 class="insight-title" id="insight-20-title">The Empty Homes Paradox</h2>
-        <!-- Python target: full long-form weekly analysis. MUST remain a single
-             <p> with no nested block elements so update_data.py can rewrite it. -->
-        <p class="insight-body" id="insight-20-content">The recent statistic indicating a 0.6% quarter-on-quarter growth in UK GDP for 2026 Q1 underscores a complex paradox within the housing sector: despite economic expansion, a significant number of homes remain unoccupied. This dissonance highlights systemic inefficiencies in housing policy, where economic growth does not translate into accessible housing for the populace. The prevalence of empty homes exacerbates issues of affordability and homelessness, revealing a misalignment between wealth creation and social welfare. Consequently, this situation calls for urgent policy interventions to address housing shortages, ensuring that economic progress is equitably shared and contributes to a more inclusive society.</p>
+        <div class="insight-body" id="insight-20-content"><p>England records roughly a quarter of a million long-term empty dwellings while families queue for social housing. Fresh commentary is generated here automatically every Monday morning.</p></div>
       </article>
     </div>
   </main>
-
-  <!-- ======================= MAGAZINE MODAL SHELL ======================= -->
-  <div class="modal" id="insight-modal" role="dialog" aria-modal="true"
-       aria-labelledby="modal-title" aria-hidden="true">
+  <div class="modal" id="insight-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
     <div class="modal-page">
-      <div class="modal-inner">
+      <div class="modal-header">
+        <div class="modal-header-stripe" id="modal-stripe"></div>
         <button class="modal-close" id="modal-close" aria-label="Close article">&times;</button>
-        <div class="modal-eyebrow">
-          <span class="num" id="modal-num">01</span>
-          <span id="modal-sector">Sector</span>
-        </div>
+        <div class="modal-eyebrow" id="modal-eyebrow">Sector</div>
         <h2 id="modal-title">Article title</h2>
-        <hr class="modal-rule">
-        <p id="modal-body">Article body.</p>
-        <p class="modal-footer-note">i20 &middot; Analysis generated weekly from open UK government statistics. Figures are drawn from the Office for National Statistics and other official open-data sources.</p>
       </div>
+      <div class="modal-chart" id="modal-chart-wrap">
+        <img id="modal-chart-img" src="" alt="Trend chart" onerror="this.parentElement.style.display='none'">
+      </div>
+      <div class="modal-body">
+        <div id="modal-body"><p>Article body.</p></div>
+      </div>
+      <div class="modal-source">i20 &middot; Analysis generated weekly from open UK government statistics via the Office for National Statistics.</div>
     </div>
   </div>
-
-  <!-- =============================== FOOTER ============================= -->
   <footer class="site-footer">
     <span>&copy; <span id="year"></span> i20.co.uk</span>
-    <span>Built as a fully automated static publication &mdash; refreshed every Monday at 06:00&nbsp;UTC.</span>
   </footer>
-
-  <!-- ========================== MINIMAL JAVASCRIPT ====================== -->
   <script>
     (function () {
       "use strict";
+      var SECTOR_COLORS = {economy:"#1e3a5f",technology:"#0d9488",healthcare:"#e8634a",education:"#d97706",housing:"#2d8a56"};
+      var modal=document.getElementById("insight-modal"),modalStripe=document.getElementById("modal-stripe"),modalEyebrow=document.getElementById("modal-eyebrow"),modalTitle=document.getElementById("modal-title"),modalBody=document.getElementById("modal-body"),modalChartWrap=document.getElementById("modal-chart-wrap"),modalChartImg=document.getElementById("modal-chart-img"),closeBtn=document.getElementById("modal-close"),lastFocus=null;
 
-      var modal      = document.getElementById("insight-modal");
-      var modalNum   = document.getElementById("modal-num");
-      var modalSector= document.getElementById("modal-sector");
-      var modalTitle = document.getElementById("modal-title");
-      var modalBody  = document.getElementById("modal-body");
-      var closeBtn   = document.getElementById("modal-close");
-      var lastFocus  = null;
-
-      /* Open the magazine overlay, cloning text from the hidden source
-         article so the Python updater only ever has one place to write. */
-      function openInsight(num) {
-        var source = document.getElementById("insight-" + num);
-        if (!source) return;
-
-        modalNum.textContent    = num;
-        modalSector.textContent = source.dataset.sector || "";
-        modalTitle.textContent  = document.getElementById("insight-" + num + "-title").textContent;
-        modalBody.textContent   = document.getElementById("insight-" + num + "-content").textContent;
-
-        lastFocus = document.activeElement;
-        modal.classList.add("is-open");
-        modal.setAttribute("aria-hidden", "false");
-        document.body.classList.add("modal-open");
-        modal.scrollTop = 0;
-        closeBtn.focus();
+      function openInsight(num){
+        var source=document.getElementById("insight-"+num);
+        if(!source)return;
+        var sc=source.dataset.sectorClass||"economy",sn=source.dataset.sector||"Sector",color=SECTOR_COLORS[sc]||"#1e3a5f";
+        modalStripe.style.background=color;
+        modalEyebrow.textContent=sn;modalEyebrow.style.color=color;
+        modalTitle.textContent=document.getElementById("insight-"+num+"-title").textContent;
+        modalBody.innerHTML=document.getElementById("insight-"+num+"-content").innerHTML;
+        var fp=modalBody.querySelector("p:first-of-type");if(fp)fp.style.setProperty("--drop-color",color);
+        var cs=source.dataset.chart||"";
+        if(cs){modalChartWrap.style.display="";modalChartImg.src=cs;modalChartImg.onerror=function(){modalChartWrap.style.display="none"};}else{modalChartWrap.style.display="none";}
+        lastFocus=document.activeElement;modal.classList.add("is-open");modal.setAttribute("aria-hidden","false");document.body.classList.add("modal-open");modal.scrollTop=0;closeBtn.focus();
       }
-
-      function closeInsight() {
-        modal.classList.remove("is-open");
-        modal.setAttribute("aria-hidden", "true");
-        document.body.classList.remove("modal-open");
-        if (lastFocus) lastFocus.focus();
-      }
-
-      /* One delegated listener covers all twenty cards. */
-      document.querySelector(".dashboard").addEventListener("click", function (e) {
-        var card = e.target.closest(".card");
-        if (card) openInsight(card.dataset.insight);
-      });
-      document.querySelector(".dashboard").addEventListener("keydown", function (e) {
-        if (e.key !== "Enter" && e.key !== " ") return;
-        var card = e.target.closest(".card");
-        if (card) { e.preventDefault(); openInsight(card.dataset.insight); }
-      });
-
-      closeBtn.addEventListener("click", closeInsight);
-      modal.addEventListener("click", function (e) {
-        if (e.target === modal) closeInsight();
-      });
-      document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape" && modal.classList.contains("is-open")) closeInsight();
-      });
-
-      document.getElementById("year").textContent = new Date().getFullYear();
+      function closeInsight(){modal.classList.remove("is-open");modal.setAttribute("aria-hidden","true");document.body.classList.remove("modal-open");if(lastFocus)lastFocus.focus();}
+      document.querySelector(".dashboard").addEventListener("click",function(e){var c=e.target.closest(".card");if(c)openInsight(c.dataset.insight);});
+      document.querySelector(".dashboard").addEventListener("keydown",function(e){if(e.key!=="Enter"&&e.key!==" ")return;var c=e.target.closest(".card");if(c){e.preventDefault();openInsight(c.dataset.insight);}});
+      closeBtn.addEventListener("click",closeInsight);
+      modal.addEventListener("click",function(e){if(e.target===modal)closeInsight();});
+      document.addEventListener("keydown",function(e){if(e.key==="Escape"&&modal.classList.contains("is-open"))closeInsight();});
+      document.getElementById("year").textContent=new Date().getFullYear();
     })();
   </script>
 </body>
