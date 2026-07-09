@@ -1,38 +1,13 @@
-# =============================================================================
-# i20.co.uk — Automated Weekly UK Society Data Update
-# -----------------------------------------------------------------------------
-# Every Monday at 06:00 UTC this workflow:
-#   1. Checks out the repository
-#   2. Installs Python 3.10 + dependencies (requests, openai)
-#   3. Runs update_data.py, which fetches fresh ONS statistics, generates
-#      analysis via gpt-4o-mini, and rewrites index.html in place
-#   4. Commits and pushes the change, which Cloudflare Pages picks up
-#      automatically and deploys within seconds
-#
-# Cost: £0. GitHub Actions is free for public repositories (and well within
-# the free-minute allowance for private ones); the ONS API is open and
-# keyless; only the OpenAI call is metered, and gpt-4o-mini keeps that to
-# pennies per run.
-#
-# Required repository secret:  OPENAI_API_KEY
-#   (Repo → Settings → Secrets and variables → Actions → New repository secret)
-# =============================================================================
-
 name: Automated Weekly UK Society Data Update
 
 on:
-  # -- Every Monday morning at 06:00 UTC, all year round --------------------
   schedule:
     - cron: "0 6 * * 1"
-
-  # -- Manual "Run workflow" button in the Actions tab, for testing ---------
   workflow_dispatch:
 
-# The default GITHUB_TOKEN needs write access to push the updated index.html.
 permissions:
   contents: write
 
-# Never let two runs race each other over the same file.
 concurrency:
   group: weekly-site-update
   cancel-in-progress: false
@@ -41,64 +16,44 @@ jobs:
   update-and-deploy:
     name: Fetch data, generate insights, publish
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
-      # ----------------------------------------------------------------- #
-      # 1. Check out the repo with credentials retained so we can push    #
-      # ----------------------------------------------------------------- #
       - name: Check out repository
         uses: actions/checkout@v4
         with:
           persist-credentials: true
           fetch-depth: 1
 
-      # ----------------------------------------------------------------- #
-      # 2. Python 3.10 runtime + pinned-major dependencies                #
-      # ----------------------------------------------------------------- #
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-          cache: "pip"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "requests>=2.31" "openai>=1.30"
+          python -m pip install "requests>=2.31" "openai>=1.30" "matplotlib>=3.8"
 
-      # ----------------------------------------------------------------- #
-      # 3. Run the updater. The API key is injected from repository        #
-      #    secrets as an environment variable — never written to disk,    #
-      #    never echoed in logs.                                          #
-      # ----------------------------------------------------------------- #
       - name: Run weekly data + AI content update
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: python update_data.py
 
-      # ----------------------------------------------------------------- #
-      # 4. Commit & push only if index.html actually changed.             #
-      #    Pushing to the default branch triggers the Cloudflare Pages    #
-      #    build hook and deploys the new issue instantly.                #
-      # ----------------------------------------------------------------- #
       - name: Commit and push updated site
         run: |
           git config user.name  "i20-insights-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # If the updater made no changes (e.g. every fetch failed and it
-          # exited early), skip the commit rather than failing the job.
-          if git diff --quiet -- index.html; then
-            echo "No changes to index.html — nothing to publish this week."
+          # Check for any changes (index.html and charts/)
+          if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
+            echo "No changes — nothing to publish this week."
             exit 0
           fi
 
           git add index.html
-          git commit -m "Automated weekly UK society data update"
+          git add charts/ --force 2>/dev/null || true
 
-          # Rebase-pull first in case anything landed on the branch since
-          # checkout, then push back to the branch that triggered the run
-          # (works whether your default branch is 'master' or 'main').
+          git commit -m "Automated weekly UK society data update"
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
