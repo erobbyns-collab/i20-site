@@ -48,14 +48,16 @@ SYSTEM_PROMPT = (
     "Act as an expert British societal sociologist writing for an informed "
     "general audience. Write an authoritative analytical article of approximately "
     "500 words evaluating how this specific statistic impacts modern UK life. "
-    "Use British English spelling throughout. Structure the article as four "
-    "clearly separated paragraphs (separated by double newlines):\n\n"
-    "1. CONTEXT — set the scene and explain why this issue matters now.\n"
-    "2. THE DATA — analyse what the latest official figure reveals.\n"
-    "3. DEEPER IMPLICATIONS — explore the knock-on effects across society.\n"
-    "4. LOOKING AHEAD — assess what comes next and what to watch for.\n\n"
+    "Use British English spelling throughout. Write four flowing paragraphs "
+    "separated by double newlines. Each paragraph should transition naturally "
+    "into the next — do NOT begin any paragraph with stock phrases like "
+    "'Looking ahead', 'In conclusion', 'Moving forward', 'Turning to', or "
+    "'It is worth noting'. Vary your openings: use concrete observations, "
+    "rhetorical questions, historical comparisons, or striking details. "
+    "The article should move from context to evidence to implications to "
+    "outlook, but the structure must feel organic, not labelled.\n\n"
     "Do NOT include any headings, labels, bullet points or markdown. "
-    "Just write four flowing paragraphs separated by blank lines."
+    "Respond with the article text only."
 )
 
 # ONS CSV download — stable public endpoint.
@@ -95,12 +97,13 @@ SECTOR_COLORS = {
     "Healthcare": "#e8634a",
     "Education":  "#d97706",
     "Housing":    "#2d8a56",
+    "Politics":   "#6C3483",
 }
 
 # Maps card number → stat key (which ONS series anchors which card)
 TOPICS = [
     {"id": "01", "title": "High Street Bank Deserts",            "sector": "Economy",    "stat": "gdp_growth"},
-    {"id": "02", "title": "The Cash Acceptance Cliff",           "sector": "Economy",    "stat": "cpih_inflation"},
+    {"id": "02", "title": "The Turnout Crisis",                  "sector": "Politics",   "stat": "economic_inactivity"},
     {"id": "03", "title": "The Regional Productivity Divide",    "sector": "Economy",    "stat": "gdp_growth"},
     {"id": "04", "title": "The Gig Economy Pension Void",        "sector": "Economy",    "stat": "employment_rate"},
     {"id": "05", "title": "The Rural Broadband Last Mile",       "sector": "Technology", "stat": "gdp_growth"},
@@ -116,7 +119,7 @@ TOPICS = [
     {"id": "15", "title": "The Teacher Retention Cliff",         "sector": "Education",  "stat": "vacancies"},
     {"id": "16", "title": "The SEND Funding Squeeze",            "sector": "Education",  "stat": "cpih_inflation"},
     {"id": "17", "title": "Generation Rent at Fifty",            "sector": "Housing",    "stat": "cpih_inflation"},
-    {"id": "18", "title": "The Leasehold Trap",                  "sector": "Housing",    "stat": "cpih_inflation"},
+    {"id": "18", "title": "Trust in Westminster",                "sector": "Politics",   "stat": "cpih_inflation"},
     {"id": "19", "title": "Childhoods in Temporary Accommodation","sector": "Housing",   "stat": "unemployment"},
     {"id": "20", "title": "The Empty Homes Paradox",             "sector": "Housing",    "stat": "gdp_growth"},
 ]
