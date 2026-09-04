@@ -124,6 +124,31 @@ TOPICS = [
     {"id": "20", "title": "The Empty Homes Paradox",             "sector": "Housing",    "stat": "gdp_growth"},
 ]
 
+
+# URL slugs for individual article pages
+SLUGS = {
+    "01": "high-street-bank-deserts",
+    "02": "the-turnout-crisis",
+    "03": "regional-productivity-divide",
+    "04": "gig-economy-pension-void",
+    "05": "rural-broadband-last-mile",
+    "06": "digital-only-by-default",
+    "07": "ai-and-the-entry-level-job",
+    "08": "britains-data-centre-boom",
+    "09": "nhs-dentistry-deserts",
+    "10": "the-eight-am-gp-scramble",
+    "11": "social-care-workforce-gap",
+    "12": "too-ill-to-work",
+    "13": "ai-state-school-divide",
+    "14": "persistent-absence-generation",
+    "15": "teacher-retention-cliff",
+    "16": "send-funding-squeeze",
+    "17": "generation-rent-at-fifty",
+    "18": "trust-in-westminster",
+    "19": "childhoods-in-temporary-accommodation",
+    "20": "empty-homes-paradox",
+}
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(levelname)-7s %(message)s", stream=sys.stdout)
 log = logging.getLogger("i20")
 
@@ -370,6 +395,187 @@ def save_atomically(path, content):
 # Orchestration
 # --------------------------------------------------------------------------
 
+
+
+# --------------------------------------------------------------------------
+# Step 5 — Generate individual article pages for SEO
+# --------------------------------------------------------------------------
+
+PAGE_TEMPLATE = """<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title} — i20</title>
+  <meta name="description" content="{meta_desc}">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://i20.co.uk/insights/{slug}.html">
+  <meta property="og:title" content="{title} — i20">
+  <meta property="og:description" content="{meta_desc}">
+  <meta property="og:image" content="https://i20.co.uk/charts/{stat_key}.png">
+  <meta property="og:locale" content="en_GB">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://i20.co.uk/insights/{slug}.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KFDVTZ9X7M"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','G-KFDVTZ9X7M');</script>
+  <script type="application/ld+json">
+  {{
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": "{title}",
+    "datePublished": "{date_iso}",
+    "dateModified": "{date_iso}",
+    "author": {{"@type": "Organization", "name": "i20"}},
+    "publisher": {{"@type": "Organization", "name": "i20", "url": "https://i20.co.uk"}},
+    "description": "{meta_desc}",
+    "mainEntityOfPage": "https://i20.co.uk/insights/{slug}.html",
+    "image": "https://i20.co.uk/charts/{stat_key}.png"
+  }}
+  </script>
+  <style>
+    :root{{--bg-page:#f0f1f3;--bg-card:#fff;--text-primary:#1a1a2e;--text-secondary:#52526a;--text-muted:#8a8a9e;--border-light:#e2e3e8;--border-rule:#d0d1d8;--sector-economy:#1e3a5f;--sector-technology:#0d9488;--sector-healthcare:#e8634a;--sector-education:#d97706;--sector-housing:#2d8a56;--sector-politics:#6C3483;--font-display:"Fraunces",Georgia,serif;--font-body:"Newsreader",Georgia,serif;--font-ui:"Inter",-apple-system,"Segoe UI",sans-serif}}
+    *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+    body{{background:var(--bg-page);color:var(--text-primary);font-family:var(--font-ui);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}}
+    .page-wrap{{max-width:740px;margin:0 auto;padding:2rem 1.5rem 4rem}}
+    .back-link{{display:inline-block;font-size:.8rem;font-weight:600;letter-spacing:.06em;color:var(--text-muted);text-decoration:none;margin-bottom:2rem;transition:color .2s}}
+    .back-link:hover{{color:var(--text-primary)}}
+    .article-card{{background:var(--bg-card);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04)}}
+    .article-stripe{{height:5px}}
+    .article-header{{padding:2rem 2.5rem 1.5rem}}
+    .article-sector{{font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.75rem}}
+    .article-title{{font-family:var(--font-display);font-weight:700;font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.15;letter-spacing:-.02em}}
+    .article-date{{font-size:.75rem;color:var(--text-muted);margin-top:.75rem}}
+    .article-chart{{padding:1.5rem 2.5rem;background:var(--bg-page);border-top:1px solid var(--border-light);border-bottom:1px solid var(--border-light)}}
+    .article-chart img{{width:100%;height:auto;border-radius:8px}}
+    .article-body{{padding:2rem 2.5rem 2.5rem;font-family:var(--font-body);font-size:1.12rem;line-height:1.8}}
+    .article-body p{{margin-bottom:1rem}}
+    .article-body p:last-child{{margin-bottom:0}}
+    .article-body p:first-of-type::first-letter{{font-family:var(--font-display);font-weight:700;font-size:3.2em;line-height:.8;float:left;padding:.06em .1em 0 0}}
+    .article-source{{padding:1.25rem 2.5rem;border-top:1px solid var(--border-light);font-size:.72rem;color:var(--text-muted)}}
+    .site-footer{{max-width:740px;margin:0 auto;padding:1.5rem 1.5rem 3rem;font-size:.75rem;color:var(--text-muted);display:flex;gap:.5rem;flex-wrap:wrap}}
+    @media(max-width:600px){{.article-header,.article-body,.article-chart,.article-source{{padding-left:1.25rem;padding-right:1.25rem}}}}
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <a href="https://i20.co.uk" class="back-link">&larr; Back to all 20 insights</a>
+    <article class="article-card">
+      <div class="article-stripe" style="background:{sector_color}"></div>
+      <div class="article-header">
+        <div class="article-sector" style="color:{sector_color}">{sector}</div>
+        <h1 class="article-title">{title}</h1>
+        <p class="article-date">Data refreshed {date_display}</p>
+      </div>
+      <div class="article-chart">
+        <img src="../charts/{stat_key}.png" alt="{stat_label} trend chart" onerror="this.parentElement.style.display='none'">
+      </div>
+      <div class="article-body">
+        {article_html}
+      </div>
+      <div class="article-source">i20 &middot; Analysis generated weekly from open UK government statistics via the Office for National Statistics.</div>
+    </article>
+  </div>
+  <footer class="site-footer">
+    <span>&copy; {year} i20.co.uk</span>
+    <span>&middot;</span>
+    <a href="mailto:info@i20.co.uk" style="color:var(--text-secondary);text-decoration:none">info@i20.co.uk</a>
+  </footer>
+</body>
+</html>"""
+
+
+def generate_article_page(topic, stat, article_html_content, stamp, date_iso):
+    """Generate a standalone HTML page for one insight."""
+    slug = SLUGS.get(topic["id"], "")
+    if not slug:
+        return None
+
+    sector_color = SECTOR_COLORS.get(topic["sector"], "#1e3a5f")
+    stat_label = stat.get("label", "")
+
+    # Build meta description from first ~150 chars of article text
+    import re as _re
+    plain = _re.sub(r'<[^>]+>', '', article_html_content)
+    meta_desc = plain[:155].rsplit(' ', 1)[0] + "..."
+
+    page_html = PAGE_TEMPLATE.format(
+        title=topic["title"],
+        slug=slug,
+        sector=topic["sector"],
+        sector_color=sector_color,
+        stat_key=topic["stat"],
+        stat_label=stat_label,
+        meta_desc=html.escape(meta_desc, quote=True),
+        article_html=article_html_content,
+        date_display=stamp,
+        date_iso=date_iso,
+        year=datetime.now(timezone.utc).strftime("%Y"),
+    )
+
+    insights_dir = os.path.join(os.path.dirname(INDEX_FILE), "insights")
+    os.makedirs(insights_dir, exist_ok=True)
+    page_path = os.path.join(insights_dir, f"{slug}.html")
+
+    with open(page_path, "w", encoding="utf-8") as f:
+        f.write(page_html)
+    log.info("Page generated: insights/%s.html", slug)
+    return slug
+
+
+# --------------------------------------------------------------------------
+# Step 6 — Generate "This Week's Lead" editorial
+# --------------------------------------------------------------------------
+
+EDITORIAL_PROMPT = (
+    "You are the editor of i20, a weekly UK data publication. Based on the "
+    "statistics provided, write a 3-4 sentence editorial introduction picking "
+    "the single most striking or newsworthy data point this week. Be opinionated, "
+    "direct, and conversational — this is your voice, not a report. Use British "
+    "English. Write in first person plural ('we'). Do not use headings or markdown. "
+    "Respond with the text only."
+)
+
+
+def generate_editorial(client, stats):
+    """Generate the weekly lead editorial paragraph."""
+    stats_summary = "\n".join(
+        f"- {v['label']}: {v['value']} ({v['period']})" for v in stats.values()
+    )
+    try:
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL, temperature=0.8, max_tokens=200,
+            messages=[
+                {"role": "system", "content": EDITORIAL_PROMPT},
+                {"role": "user", "content": f"This week's UK statistics:\n{stats_summary}"},
+            ],
+        )
+        text = (response.choices[0].message.content or "").strip()
+        if len(text.split()) >= 20:
+            return text
+    except Exception as exc:
+        log.warning("Editorial generation failed: %s", exc)
+    return None
+
+
+# --------------------------------------------------------------------------
+# Step 7 — Generate dynamic sitemap
+# --------------------------------------------------------------------------
+
+def generate_sitemap(updated_slugs, stamp_iso):
+    """Write sitemap.xml with homepage + all individual article pages."""
+    sitemap_path = os.path.join(os.path.dirname(INDEX_FILE), "sitemap.xml")
+    urls = ['  <url>\n    <loc>https://i20.co.uk/</loc>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n    <lastmod>{}</lastmod>\n  </url>'.format(stamp_iso)]
+    for slug in sorted(SLUGS.values()):
+        urls.append('  <url>\n    <loc>https://i20.co.uk/insights/{}.html</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n    <lastmod>{}</lastmod>\n  </url>'.format(slug, stamp_iso))
+    sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{}\n</urlset>\n'.format('\n'.join(urls))
+    with open(sitemap_path, "w", encoding="utf-8") as f:
+        f.write(sitemap)
+    log.info("Sitemap generated with %d URLs", len(urls))
+
 def main():
     log.info("=== i20 weekly update starting (v2) ===")
 
@@ -415,10 +621,41 @@ def main():
         return 1
 
     stamp = datetime.now(timezone.utc).strftime("%d %B %Y, %H:%M UTC")
+    stamp_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     html_doc = inject_text(html_doc, "last-updated", stamp)
+
+    # Generate "This Week's Lead" editorial
+    editorial = generate_editorial(client, stats)
+    if editorial:
+        html_doc = inject_text(html_doc, "lead-editorial-content", editorial)
+        log.info("Editorial lead generated")
+
     save_atomically(INDEX_FILE, html_doc)
 
-    log.info("=== Done: %d/%d cards refreshed ===", updated, len(TOPICS))
+    # Generate individual article pages for SEO
+    page_slugs = []
+    for topic in TOPICS:
+        stat = stats.get(topic["stat"])
+        if not stat:
+            continue
+        content_el_id = f"insight-{topic['id']}-content"
+        # Extract the article HTML from the updated index.html
+        import re as _re
+        match = _re.search(
+            r'<div[^>]*\bid="' + _re.escape(content_el_id) + r'"[^>]*>(.*?)</div>',
+            html_doc, _re.DOTALL
+        )
+        if match:
+            article_html_content = match.group(1)
+            slug = generate_article_page(topic, stat, article_html_content, stamp, stamp_iso)
+            if slug:
+                page_slugs.append(slug)
+
+    # Generate dynamic sitemap
+    generate_sitemap(page_slugs, stamp_iso[:10])
+
+    log.info("=== Done: %d/%d cards refreshed, %d pages generated ===",
+             updated, len(TOPICS), len(page_slugs))
     return 0
 
 
