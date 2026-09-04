@@ -53,6 +53,8 @@ jobs:
 
           git add index.html
           git add charts/ --force 2>/dev/null || true
+          git add insights/ --force 2>/dev/null || true
+          git add sitemap.xml 2>/dev/null || true
 
           git commit -m "Automated weekly UK society data update"
           git pull --rebase origin "${GITHUB_REF_NAME}"
