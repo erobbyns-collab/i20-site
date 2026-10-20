@@ -596,7 +596,7 @@ def generate_sitemap(updated_slugs, stamp_iso):
     urls = ['  <url>\n    <loc>https://i20.co.uk/</loc>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n    <lastmod>{}</lastmod>\n  </url>'.format(stamp_iso)]
     for slug in sorted(SLUGS.values()):
         urls.append('  <url>\n    <loc>https://i20.co.uk/insights/{}.html</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n    <lastmod>{}</lastmod>\n  </url>'.format(slug, stamp_iso))
-    sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{}\n</urlset>\n'.format('\n'.join(urls))
+    sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{}\n</urlset>\n'.format('\n'.join(urls))
     with open(sitemap_path, "w", encoding="utf-8") as f:
         f.write(sitemap)
     log.info("Sitemap generated with %d URLs", len(urls))
