@@ -38,8 +38,7 @@
 <body>
   <div class="wrap">
     <a href="/" class="back">&#8592; Back to i20</a>
-    <h1>Sitemap<span class="count"><xsl:value-of select="count(sitemap:urlset/sitemap:url)"/> pages</span></h1>
-    <p class="subtitle">All pages on i20.co.uk, indexed weekly for search engines.</p>
+    <h1>Sitemap</h1>
     <table>
       <thead>
         <tr>
