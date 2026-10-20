@@ -22,6 +22,7 @@ import re
 import sys
 import tempfile
 import time
+import urllib.parse
 from datetime import datetime, timezone
 
 import matplotlib
@@ -415,6 +416,10 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
   <meta property="og:image" content="https://i20.co.uk/charts/{stat_key}.png">
   <meta property="og:locale" content="en_GB">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{title} — i20">
+  <meta name="twitter:description" content="{meta_desc}">
+  <meta name="twitter:image" content="https://i20.co.uk/charts/{stat_key}.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="canonical" href="https://i20.co.uk/insights/{slug}.html">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -456,7 +461,15 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
     .article-body p:last-child{{margin-bottom:0}}
     .article-body p:first-of-type::first-letter{{font-family:var(--font-display);font-weight:700;font-size:3.2em;line-height:.8;float:left;padding:.06em .1em 0 0}}
     .article-source{{padding:1.25rem 2.5rem;border-top:1px solid var(--border-light);font-size:.72rem;color:var(--text-muted)}}
-    .site-footer{{max-width:740px;margin:0 auto;padding:1.5rem 1.5rem 3rem;font-size:.75rem;color:var(--text-muted);display:flex;gap:.5rem;flex-wrap:wrap}}
+    .share-bar{{padding:1.25rem 2.5rem;border-top:1px solid var(--border-light);display:flex;align-items:center;gap:.75rem}}
+    .share-label{{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}}
+    .share-btn{{display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .9rem;border-radius:6px;font-size:.75rem;font-weight:500;text-decoration:none;color:#fff;transition:opacity .2s}}
+    .share-btn:hover{{opacity:.85}}
+    .share-btn--x{{background:#000}}
+    .share-btn--li{{background:#0A66C2}}
+    .site-footer{{max-width:740px;margin:0 auto;padding:2rem 1.5rem 3rem;font-size:.75rem;color:var(--text-muted)}}
+    .footer-inner{{border-top:1px solid var(--border-rule);padding-top:1.25rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}}
+    .footer-inner a{{color:var(--text-secondary);text-decoration:none}}
     @media(max-width:600px){{.article-header,.article-body,.article-chart,.article-source{{padding-left:1.25rem;padding-right:1.25rem}}}}
   </style>
 </head>
@@ -477,12 +490,23 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
         {article_html}
       </div>
       <div class="article-source">i20 &middot; Analysis generated weekly from open UK government statistics via the Office for National Statistics.</div>
+      <div class="share-bar">
+        <span class="share-label">Share</span>
+        <a class="share-btn share-btn--x" href="https://twitter.com/intent/tweet?text={url_title}%20%E2%80%94%20i20&url=https%3A%2F%2Fi20.co.uk%2Finsights%2F{slug}.html" target="_blank" rel="noopener">&#x1D54F;</a>
+        <a class="share-btn share-btn--li" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fi20.co.uk%2Finsights%2F{slug}.html" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
     </article>
   </div>
   <footer class="site-footer">
-    <span>&copy; {year} i20.co.uk</span>
-    <span>&middot;</span>
-    <a href="mailto:info@i20.co.uk" style="color:var(--text-secondary);text-decoration:none">info@i20.co.uk</a>
+    <div class="footer-inner">
+      <span>&copy; {year} i20.co.uk</span>
+      <span>&middot;</span>
+      <a href="mailto:info@i20.co.uk">info@i20.co.uk</a>
+      <span>&middot;</span>
+      <span>Data from <a href="https://www.ons.gov.uk" target="_blank" rel="noopener">ONS</a></span>
+      <span>&middot;</span>
+      <a href="/sitemap.xml">Sitemap</a>
+    </div>
   </footer>
 </body>
 </html>"""
@@ -514,6 +538,7 @@ def generate_article_page(topic, stat, article_html_content, stamp, date_iso):
         date_display=stamp,
         date_iso=date_iso,
         year=datetime.now(timezone.utc).strftime("%Y"),
+        url_title=urllib.parse.quote(topic["title"], safe=""),
     )
 
     insights_dir = os.path.join(os.path.dirname(INDEX_FILE), "insights")

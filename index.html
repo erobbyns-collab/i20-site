@@ -20,12 +20,8 @@
   <meta name="twitter:description" content="Twenty data-driven weekly briefings across the economy, technology, healthcare, education, housing and politics.">
   <meta name="twitter:image" content="https://i20.co.uk/og-image.png">
 
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="i20 — 20 insights reshaping the modern UK">
-  <meta name="twitter:description" content="Twenty data-driven weekly briefings across the economy, technology, healthcare, education, housing and politics.">
-  <meta name="twitter:image" content="https://i20.co.uk/og-image.png">
-
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -175,7 +171,19 @@
 
     .modal-source{padding-left:1.25rem;padding-right:1.25rem}.modal-page{margin:.5rem 0;border-radius:12px}}
     body.modal-open{overflow:hidden}
-    .site-footer{max-width:1240px;margin:0 auto;padding:1.5rem 1.5rem 3rem;border-top:1px solid var(--border-rule);font-size:.75rem;color:var(--text-muted);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+    .about-section{max-width:1240px;margin:0 auto;padding:3rem 1.5rem 0}
+    .about-inner{border-top:1px solid var(--border-rule);padding-top:2.5rem;max-width:640px}
+    .about-heading{font-family:var(--font-display);font-weight:700;font-size:1.4rem;letter-spacing:-.02em;margin-bottom:.75rem}
+    .about-text{font-family:var(--font-body);font-size:.95rem;line-height:1.7;color:var(--text-secondary)}
+    .site-footer{max-width:1240px;margin:0 auto;padding:2.5rem 1.5rem 3rem;font-size:.8rem;color:var(--text-muted)}
+    .footer-inner{border-top:1px solid var(--border-rule);padding-top:2rem;display:grid;grid-template-columns:repeat(3,1fr);gap:2rem}
+    .footer-label{font-family:var(--font-ui);font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-secondary);margin-bottom:.5rem}
+    .footer-text{font-size:.8rem;line-height:1.6;color:var(--text-muted)}
+    .footer-text a{color:var(--text-secondary);text-decoration:none;transition:color .2s}
+    .footer-text a:hover{color:var(--text-primary)}
+    .footer-bottom{grid-column:1/-1;border-top:1px solid var(--border-light);padding-top:1rem;display:flex;align-items:center;gap:.5rem;font-size:.75rem}
+    .footer-bottom a{color:var(--text-secondary);text-decoration:none}
+    @media(max-width:600px){.footer-inner{grid-template-columns:1fr;gap:1.25rem}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
   </style>
 
@@ -564,10 +572,32 @@
       <div class="modal-source">i20 &middot; Analysis generated weekly from open UK government statistics via the Office for National Statistics.</div>
     </div>
   </div>
+  <section class="about-section" id="about">
+    <div class="about-inner">
+      <h2 class="about-heading">About i20</h2>
+      <p class="about-text">i20 is a fully automated weekly publication that distils official UK government statistics into twenty concise, data-driven briefings. Every Monday, our pipeline pulls the latest figures from the Office for National Statistics, generates analysis across six sectors — Economy, Technology, Healthcare, Education, Housing and Politics — and publishes them here. No editors, no spin, just the data speaking for itself.</p>
+    </div>
+  </section>
   <footer class="site-footer">
-    <span>&copy; <span id="year"></span> i20.co.uk</span>
-    <span style="color:var(--border-rule)">&middot;</span>
-    <a href="mailto:info@i20.co.uk" style="color:var(--text-secondary);text-decoration:none">info@i20.co.uk</a>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <h3 class="footer-label">i20</h3>
+        <p class="footer-text">Twenty weekly data-driven briefings reshaping the modern UK. Published every Monday from official ONS statistics.</p>
+      </div>
+      <div class="footer-col">
+        <h3 class="footer-label">Contact</h3>
+        <p class="footer-text"><a href="mailto:info@i20.co.uk">info@i20.co.uk</a></p>
+      </div>
+      <div class="footer-col">
+        <h3 class="footer-label">Data</h3>
+        <p class="footer-text">Sourced from the <a href="https://www.ons.gov.uk" target="_blank" rel="noopener">Office for National Statistics</a></p>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; <span id="year"></span> i20.co.uk</span>
+        <span>&middot;</span>
+        <a href="/sitemap.xml">Sitemap</a>
+      </div>
+    </div>
   </footer>
   <script>
     (function () {
