@@ -571,6 +571,12 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
       <span>&middot;</span>
       <span>Data from <a href="https://www.ons.gov.uk" target="_blank" rel="noopener">ONS</a></span>
       <span>&middot;</span>
+      <a href="/terms.html">Terms</a>
+      <span>&middot;</span>
+      <a href="/privacy.html">Privacy</a>
+      <span>&middot;</span>
+      <a href="/cookies.html">Cookies</a>
+      <span>&middot;</span>
       <a href="/sitemap.xml">Sitemap</a>
     </div>
   </footer>
@@ -661,6 +667,8 @@ def generate_sitemap(updated_slugs, stamp_iso):
     """Write sitemap.xml with homepage + all individual article pages."""
     sitemap_path = os.path.join(os.path.dirname(INDEX_FILE), "sitemap.xml")
     urls = ['  <url>\n    <loc>https://i20.co.uk/</loc>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n    <lastmod>{}</lastmod>\n  </url>'.format(stamp_iso)]
+    for page in ['terms', 'privacy', 'cookies']:
+        urls.append('  <url>\n    <loc>https://i20.co.uk/{}.html</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.3</priority>\n    <lastmod>{}</lastmod>\n  </url>'.format(page, stamp_iso))
     for slug in sorted(SLUGS.values()):
         urls.append('  <url>\n    <loc>https://i20.co.uk/insights/{}.html</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n    <lastmod>{}</lastmod>\n  </url>'.format(slug, stamp_iso))
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{}\n</urlset>\n'.format('\n'.join(urls))
