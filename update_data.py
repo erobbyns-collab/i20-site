@@ -47,7 +47,12 @@ RETRY_BACKOFF_SECONDS = 4
 
 SYSTEM_PROMPT = (
     "Act as an expert British societal sociologist writing for an informed "
-    "general audience. Write an authoritative analytical article of approximately "
+    "general audience. You will produce TWO things:\n\n"
+    "1. HEADLINE — a punchy, specific newspaper-style headline (8-12 words) "
+    "that references this week's actual data figure and the topic. Make it "
+    "fresh and timely — it must read as a new headline each week, not a "
+    "standing column name. Do NOT use generic labels.\n\n"
+    "2. ARTICLE — an authoritative analytical article of approximately "
     "500 words evaluating how this specific statistic impacts modern UK life. "
     "Use British English spelling throughout. Write four flowing paragraphs "
     "separated by double newlines. Each paragraph should transition naturally "
@@ -57,8 +62,13 @@ SYSTEM_PROMPT = (
     "rhetorical questions, historical comparisons, or striking details. "
     "The article should move from context to evidence to implications to "
     "outlook, but the structure must feel organic, not labelled.\n\n"
-    "Do NOT include any headings, labels, bullet points or markdown. "
-    "Respond with the article text only."
+    "Format your response EXACTLY like this:\n"
+    "HEADLINE: Your headline here\n"
+    "ARTICLE:\n"
+    "First paragraph text...\n\n"
+    "Second paragraph text...\n\n"
+    "Third paragraph text...\n\n"
+    "Fourth paragraph text..."
 )
 
 # ONS CSV download — stable public endpoint.
@@ -103,26 +113,26 @@ SECTOR_COLORS = {
 
 # Maps card number → stat key (which ONS series anchors which card)
 TOPICS = [
-    {"id": "01", "title": "High Street Bank Deserts",            "sector": "Economy",    "stat": "gdp_growth"},
-    {"id": "02", "title": "The Turnout Crisis",                  "sector": "Politics",   "stat": "economic_inactivity"},
-    {"id": "03", "title": "The Regional Productivity Divide",    "sector": "Economy",    "stat": "gdp_growth"},
-    {"id": "04", "title": "The Gig Economy Pension Void",        "sector": "Economy",    "stat": "employment_rate"},
-    {"id": "05", "title": "The Rural Broadband Last Mile",       "sector": "Technology", "stat": "gdp_growth"},
-    {"id": "06", "title": "Digital-Only by Default",             "sector": "Technology", "stat": "economic_inactivity"},
-    {"id": "07", "title": "AI and the Entry-Level Job",          "sector": "Technology", "stat": "vacancies"},
-    {"id": "08", "title": "Britain's Data Centre Boom",          "sector": "Technology", "stat": "gdp_growth"},
-    {"id": "09", "title": "NHS Dentistry Deserts",               "sector": "Healthcare", "stat": "cpih_inflation"},
-    {"id": "10", "title": "The Eight A.M. GP Scramble",          "sector": "Healthcare", "stat": "economic_inactivity"},
-    {"id": "11", "title": "The Social Care Workforce Gap",       "sector": "Healthcare", "stat": "vacancies"},
-    {"id": "12", "title": "Too Ill to Work",                     "sector": "Healthcare", "stat": "economic_inactivity"},
-    {"id": "13", "title": "The AI State School Divide",          "sector": "Education",  "stat": "unemployment"},
-    {"id": "14", "title": "The Persistent Absence Generation",   "sector": "Education",  "stat": "economic_inactivity"},
-    {"id": "15", "title": "The Teacher Retention Cliff",         "sector": "Education",  "stat": "vacancies"},
-    {"id": "16", "title": "The SEND Funding Squeeze",            "sector": "Education",  "stat": "cpih_inflation"},
-    {"id": "17", "title": "Generation Rent at Fifty",            "sector": "Housing",    "stat": "cpih_inflation"},
-    {"id": "18", "title": "Trust in Westminster",                "sector": "Politics",   "stat": "cpih_inflation"},
-    {"id": "19", "title": "Childhoods in Temporary Accommodation","sector": "Housing",   "stat": "unemployment"},
-    {"id": "20", "title": "The Empty Homes Paradox",             "sector": "Housing",    "stat": "gdp_growth"},
+    {"id": "01", "subject": "High-street bank branch closures and banking deserts", "sector": "Economy",    "stat": "gdp_growth"},
+    {"id": "02", "subject": "Declining voter turnout and democratic disengagement",  "sector": "Politics",   "stat": "economic_inactivity"},
+    {"id": "03", "subject": "Regional productivity gap between London/SE and other UK regions", "sector": "Economy", "stat": "gdp_growth"},
+    {"id": "04", "subject": "Gig economy workers lacking pension provision",         "sector": "Economy",    "stat": "employment_rate"},
+    {"id": "05", "subject": "Rural broadband connectivity and the digital divide",   "sector": "Technology", "stat": "gdp_growth"},
+    {"id": "06", "subject": "Government services going digital-only, excluding vulnerable groups", "sector": "Technology", "stat": "economic_inactivity"},
+    {"id": "07", "subject": "AI displacing entry-level and graduate jobs",            "sector": "Technology", "stat": "vacancies"},
+    {"id": "08", "subject": "UK data centre expansion and digital infrastructure growth", "sector": "Technology", "stat": "gdp_growth"},
+    {"id": "09", "subject": "NHS dental deserts and access to dental care",           "sector": "Healthcare", "stat": "cpih_inflation"},
+    {"id": "10", "subject": "The 8am GP appointment scramble and primary care access","sector": "Healthcare", "stat": "economic_inactivity"},
+    {"id": "11", "subject": "Social care workforce shortages and recruitment crisis", "sector": "Healthcare", "stat": "vacancies"},
+    {"id": "12", "subject": "Long-term sickness keeping people out of the workforce","sector": "Healthcare", "stat": "economic_inactivity"},
+    {"id": "13", "subject": "AI in education and the state-school vs private-school divide", "sector": "Education", "stat": "unemployment"},
+    {"id": "14", "subject": "Persistent school absence and its generational effects","sector": "Education",  "stat": "economic_inactivity"},
+    {"id": "15", "subject": "Teacher retention crisis and experienced staff leaving","sector": "Education",  "stat": "vacancies"},
+    {"id": "16", "subject": "SEND funding shortfall and pressure on local authorities","sector": "Education", "stat": "cpih_inflation"},
+    {"id": "17", "subject": "Older private renters and the generation stuck renting past 50", "sector": "Housing", "stat": "cpih_inflation"},
+    {"id": "18", "subject": "Public trust in Westminster and Parliament",             "sector": "Politics",   "stat": "cpih_inflation"},
+    {"id": "19", "subject": "Children living in temporary accommodation",             "sector": "Housing",    "stat": "unemployment"},
+    {"id": "20", "subject": "Empty homes across the UK while housing demand rises",   "sector": "Housing",    "stat": "gdp_growth"},
 ]
 
 
@@ -307,35 +317,59 @@ def build_client():
 
 
 def generate_article(client, topic, stat):
-    """Generate a ~500-word, four-paragraph analytical article."""
+    """Generate a headline + ~500-word, four-paragraph analytical article.
+
+    Returns (headline, article_text) or (None, None) on failure.
+    """
     user_prompt = (
-        f"Weekly briefing topic: \"{topic['title']}\" "
+        f"Weekly briefing subject: \"{topic['subject']}\" "
         f"(sector: {topic['sector']}).\n"
         f"Latest official statistic — {stat['label']}: "
         f"{stat['value']} for {stat['period']} "
         f"(source: Office for National Statistics).\n\n"
-        "Write the article now. Four paragraphs, ~500 words total. "
-        "Respond with the article text only: no headings, no markdown, no quotation marks."
+        "Write the HEADLINE and ARTICLE now. Follow the format exactly."
     )
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             response = client.chat.completions.create(
-                model=OPENAI_MODEL, temperature=0.7, max_tokens=900,
+                model=OPENAI_MODEL, temperature=0.7, max_tokens=950,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": user_prompt},
                 ],
             )
             text = (response.choices[0].message.content or "").strip()
-            if len(text.split()) >= 150:
-                return text
-            log.warning("Article too short for %s (attempt %d)", topic["id"], attempt)
+            # Parse HEADLINE: and ARTICLE: from the response
+            headline, article = parse_headline_article(text)
+            if headline and article and len(article.split()) >= 150:
+                return headline, article
+            log.warning("Article too short or missing headline for %s (attempt %d)",
+                        topic["id"], attempt)
         except Exception as exc:
             log.warning("OpenAI failed for %s attempt %d/%d: %s",
                         topic["id"], attempt, MAX_RETRIES, exc)
         if attempt < MAX_RETRIES:
             time.sleep(RETRY_BACKOFF_SECONDS * attempt)
-    return None
+    return None, None
+
+
+def parse_headline_article(text):
+    """Parse 'HEADLINE: ...\nARTICLE:\n...' format from model output."""
+    # Try structured format first
+    hl_match = re.match(r'HEADLINE:\s*(.+)', text)
+    if hl_match:
+        headline = hl_match.group(1).strip().strip('"')
+        art_match = re.search(r'ARTICLE:\s*\n(.*)', text, re.DOTALL)
+        if art_match:
+            return headline, art_match.group(1).strip()
+    # Fallback: first line is headline, rest is article
+    lines = text.strip().split('\n', 1)
+    if len(lines) == 2:
+        headline = lines[0].strip().strip('"').removeprefix('HEADLINE:').strip()
+        article = lines[1].strip().removeprefix('ARTICLE:').strip()
+        if headline and article:
+            return headline, article
+    return None, None
 
 
 def article_to_html(text):
@@ -375,6 +409,38 @@ def inject_html(html_doc, element_id, new_html):
     updated, n = pattern.subn(lambda m: m.group(1) + new_html + m.group(3), html_doc, count=1)
     if n == 0:
         log.error("Div '%s' not found — skipped", element_id)
+        return html_doc
+    return updated
+
+
+def inject_card_title(html_doc, card_num, new_title):
+    """Update the <h3 class='card-title'> inside a card with data-insight='XX'."""
+    safe_title = html.escape(new_title, quote=False)
+    # Update the card title <h3>
+    pattern = re.compile(
+        r'(data-insight="' + re.escape(card_num) + r'".*?'
+        r'<h3 class="card-title">)(.*?)(</h3>)', re.DOTALL)
+    updated, n = pattern.subn(r'\g<1>' + safe_title + r'\3', html_doc, count=1)
+    if n == 0:
+        log.error("Card title for card %s not found — skipped", card_num)
+        return html_doc
+    # Update the aria-label on the same card
+    updated = re.sub(
+        r'(aria-label="Read insight ' + re.escape(card_num) + r': )([^"]*)',
+        r'\g<1>' + safe_title.replace('&', '&amp;'),
+        updated, count=1)
+    return updated
+
+
+def inject_insight_title(html_doc, element_id, new_title):
+    """Update the <h2 class='insight-title'> by id."""
+    safe_title = html.escape(new_title, quote=False)
+    pattern = re.compile(
+        r'(<h2 class="insight-title" id="' + re.escape(element_id) +
+        r'">)(.*?)(</h2>)', re.DOTALL)
+    updated, n = pattern.subn(r'\g<1>' + safe_title + r'\3', html_doc, count=1)
+    if n == 0:
+        log.error("Insight title '%s' not found — skipped", element_id)
         return html_doc
     return updated
 
@@ -512,12 +578,13 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
 </html>"""
 
 
-def generate_article_page(topic, stat, article_html_content, stamp, date_iso):
+def generate_article_page(topic, stat, article_html_content, stamp, date_iso, title=None):
     """Generate a standalone HTML page for one insight."""
     slug = SLUGS.get(topic["id"], "")
     if not slug:
         return None
 
+    page_title = title or topic.get("subject", "Insight")
     sector_color = SECTOR_COLORS.get(topic["sector"], "#1e3a5f")
     stat_label = stat.get("label", "")
 
@@ -527,7 +594,7 @@ def generate_article_page(topic, stat, article_html_content, stamp, date_iso):
     meta_desc = plain[:155].rsplit(' ', 1)[0] + "..."
 
     page_html = PAGE_TEMPLATE.format(
-        title=topic["title"],
+        title=page_title,
         slug=slug,
         sector=topic["sector"],
         sector_color=sector_color,
@@ -538,7 +605,7 @@ def generate_article_page(topic, stat, article_html_content, stamp, date_iso):
         date_display=stamp,
         date_iso=date_iso,
         year=datetime.now(timezone.utc).strftime("%Y"),
-        url_title=urllib.parse.quote(topic["title"], safe=""),
+        url_title=urllib.parse.quote(page_title, safe=""),
     )
 
     insights_dir = os.path.join(os.path.dirname(INDEX_FILE), "insights")
@@ -623,23 +690,28 @@ def main():
         html_doc = fh.read()
 
     updated = 0
+    generated_titles = {}  # {card_id: headline} for article page generation
     for topic in TOPICS:
         stat = stats.get(topic["stat"])
         if not stat:
             log.warning("Card %s: stat unavailable, keeping old text", topic["id"])
             continue
 
-        article = generate_article(client, topic, stat)
+        headline, article = generate_article(client, topic, stat)
         if not article:
             log.warning("Card %s: generation failed, keeping old text", topic["id"])
             continue
 
+        generated_titles[topic["id"]] = headline
         article_html = article_to_html(article)
         html_doc = inject_html(html_doc, f"insight-{topic['id']}-content", article_html)
         html_doc = inject_text(html_doc, f"card-{topic['id']}-desc",
                                summarise_for_card(article, stat))
+        # Inject the fresh headline into card title, aria-label, and insight title
+        html_doc = inject_card_title(html_doc, topic["id"], headline)
+        html_doc = inject_insight_title(html_doc, f"insight-{topic['id']}-title", headline)
         updated += 1
-        log.info("Card %s updated (%s)", topic["id"], topic["title"])
+        log.info("Card %s updated — \"%s\"", topic["id"], headline)
 
     if updated == 0:
         log.critical("Zero cards updated — refusing to rewrite index.html.")
@@ -672,7 +744,9 @@ def main():
         )
         if match:
             article_html_content = match.group(1)
-            slug = generate_article_page(topic, stat, article_html_content, stamp, stamp_iso)
+            # Use the generated headline, or fall back to subject
+            page_title = generated_titles.get(topic["id"], topic["subject"])
+            slug = generate_article_page(topic, stat, article_html_content, stamp, stamp_iso, page_title)
             if slug:
                 page_slugs.append(slug)
 
