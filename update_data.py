@@ -583,6 +583,8 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
       <a href="/cookies.html">Cookies</a>
       <span>&middot;</span>
       <a href="/sitemap.xml">Sitemap</a>
+      <span>&middot;</span>
+      <a href="/feed.xml">RSS</a>
     </div>
   </footer>
 </body>
