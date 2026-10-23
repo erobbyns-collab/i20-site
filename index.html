@@ -48,7 +48,8 @@
 
     .masthead{max-width:1240px;margin:0 auto;padding:3rem 1.5rem 2rem}
     .masthead-top{display:flex;align-items:baseline;flex-wrap:wrap;gap:.5rem 1.5rem;padding-bottom:1.5rem;border-bottom:2px solid var(--text-primary)}
-    .brand{font-family:var(--font-display);font-weight:700;font-size:clamp(2.8rem,6vw,4.4rem);letter-spacing:-.03em;line-height:1;color:var(--text-primary)}
+    .brand{line-height:1}
+    .brand img{height:clamp(3rem,6vw,4.6rem);width:auto;display:block;border-radius:12px}
     .strapline{font-family:var(--font-display);font-weight:500;font-size:clamp(1.5rem,3.5vw,2.2rem);color:var(--text-secondary);line-height:1.35;max-width:38ch}
     .masthead-meta{display:flex;flex-wrap:wrap;gap:.5rem 2rem;padding-top:1rem;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted)}
     .masthead-meta strong{color:var(--text-secondary);font-weight:600}
@@ -206,7 +207,7 @@
 <body>
   <header class="masthead">
     <div class="masthead-top">
-      <h1 class="brand">i20</h1>
+      <h1 class="brand"><img src="/google-news-logo.png" alt="i20" width="120" height="120"></h1>
       <div class="strapline-wrap"><p class="strapline">20 insights reshaping the modern UK.</p></div>
     </div>
     <div class="masthead-meta">
