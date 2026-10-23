@@ -8,6 +8,24 @@
     <lastmod>2026-10-23</lastmod>
   </url>
   <url>
+    <loc>https://i20.co.uk/terms.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <lastmod>2026-10-23</lastmod>
+  </url>
+  <url>
+    <loc>https://i20.co.uk/privacy.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <lastmod>2026-10-23</lastmod>
+  </url>
+  <url>
+    <loc>https://i20.co.uk/cookies.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+    <lastmod>2026-10-23</lastmod>
+  </url>
+  <url>
     <loc>https://i20.co.uk/insights/ai-and-the-entry-level-job.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
