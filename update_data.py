@@ -487,6 +487,9 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
   <meta name="twitter:image" content="https://i20.co.uk/charts/{stat_key}.png">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="canonical" href="https://i20.co.uk/insights/{slug}.html">
+  <link rel="alternate" hreflang="en-GB" href="https://i20.co.uk/insights/{slug}.html">
+  <link rel="alternate" hreflang="en" href="https://i20.co.uk/insights/{slug}.html">
+  <link rel="alternate" type="application/rss+xml" title="i20 — Weekly UK Insights" href="https://i20.co.uk/feed.xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -501,10 +504,12 @@ PAGE_TEMPLATE = """<!DOCTYPE html>
     "datePublished": "{date_iso}",
     "dateModified": "{date_iso}",
     "author": {{"@type": "Organization", "name": "i20"}},
-    "publisher": {{"@type": "Organization", "name": "i20", "url": "https://i20.co.uk"}},
+    "publisher": {{"@type": "Organization", "name": "i20", "url": "https://i20.co.uk", "logo": {{"@type": "ImageObject", "url": "https://i20.co.uk/google-news-logo.png", "width": 1000, "height": 1000}}}},
     "description": "{meta_desc}",
     "mainEntityOfPage": "https://i20.co.uk/insights/{slug}.html",
-    "image": "https://i20.co.uk/charts/{stat_key}.png"
+    "image": "https://i20.co.uk/charts/{stat_key}.png",
+    "inLanguage": "en-GB",
+    "isAccessibleForFree": true
   }}
   </script>
   <style>
@@ -676,6 +681,59 @@ def generate_sitemap(updated_slugs, stamp_iso):
         f.write(sitemap)
     log.info("Sitemap generated with %d URLs", len(urls))
 
+
+# --------------------------------------------------------------------------
+# Step 8 — Generate RSS feed
+# --------------------------------------------------------------------------
+
+def generate_rss(generated_titles, stats, stamp_iso):
+    """Write feed.xml with the 20 weekly articles."""
+    base = os.path.dirname(INDEX_FILE)
+    items = []
+    for topic in TOPICS:
+        slug = SLUGS.get(topic["id"], "")
+        if not slug:
+            continue
+        title = html.escape(generated_titles.get(topic["id"], topic["subject"]))
+        stat = stats.get(topic["stat"])
+        desc = html.escape(f"Weekly data briefing on {topic['subject']} — sector: {topic['sector']}.")
+        if stat:
+            desc = html.escape(f"{stat['label']}: {stat['value']} ({stat['period']}). Weekly analysis of {topic['subject']}.")
+        items.append(
+            '    <item>\n'
+            f'      <title>{title}</title>\n'
+            f'      <link>https://i20.co.uk/insights/{slug}.html</link>\n'
+            f'      <guid isPermaLink="true">https://i20.co.uk/insights/{slug}.html</guid>\n'
+            f'      <description>{desc}</description>\n'
+            f'      <pubDate>{stamp_iso}</pubDate>\n'
+            f'      <category>{html.escape(topic["sector"])}</category>\n'
+            '    </item>'
+        )
+    feed = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n'
+        '  <channel>\n'
+        '    <title>i20 — 20 insights reshaping the modern UK</title>\n'
+        '    <link>https://i20.co.uk</link>\n'
+        '    <description>Twenty weekly data-driven briefings across the economy, technology, healthcare, education, housing and politics — powered by official UK statistics.</description>\n'
+        '    <language>en-gb</language>\n'
+        f'    <lastBuildDate>{stamp_iso}</lastBuildDate>\n'
+        '    <atom:link href="https://i20.co.uk/feed.xml" rel="self" type="application/rss+xml"/>\n'
+        '    <image>\n'
+        '      <url>https://i20.co.uk/google-news-logo.png</url>\n'
+        '      <title>i20</title>\n'
+        '      <link>https://i20.co.uk</link>\n'
+        '    </image>\n'
+        + '\n'.join(items) + '\n'
+        '  </channel>\n'
+        '</rss>\n'
+    )
+    feed_path = os.path.join(base, "feed.xml")
+    with open(feed_path, "w", encoding="utf-8") as f:
+        f.write(feed)
+    log.info("RSS feed generated with %d items", len(items))
+
+
 def main():
     log.info("=== i20 weekly update starting (v2) ===")
 
@@ -760,6 +818,9 @@ def main():
 
     # Generate dynamic sitemap
     generate_sitemap(page_slugs, stamp_iso[:10])
+
+    # Generate RSS feed
+    generate_rss(generated_titles, stats, stamp_iso)
 
     log.info("=== Done: %d/%d cards refreshed, %d pages generated ===",
              updated, len(TOPICS), len(page_slugs))
